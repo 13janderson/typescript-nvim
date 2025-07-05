@@ -49,5 +49,5 @@ function callNvim(method: string, params: any[]): Promise<any> {
 // TODO, understand structure of MessagePack-RPC is
 // https://neovim.io/doc/user/api.html && https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
 // Understand what this code is doign rather than blindly following it.
-// Want to understand the MessageRPC spec and then how we can use it with Neovim.
+// Want to understand the spec
 
