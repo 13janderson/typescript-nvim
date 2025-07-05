@@ -8,11 +8,11 @@ export interface MessagePackRequest {
   params: any[]
 }
 
-function encodeMessagePackRequest(req: MessagePackRequest): Uint8Array {
+export function encodeMessagePackRequest(req: MessagePackRequest): Uint8Array {
   return encode([req.type, req.msgid, req.method, req.params])
 }
 
-function decodeMessagePackResponse(res: Buffer | unknown): MessagePackResponse | undefined {
+export function decodeMessagePackResponse(res: Buffer | unknown): MessagePackResponse | undefined {
   try {
     if (Buffer.isBuffer(res)) {
       const decoded = decode(res)
@@ -69,10 +69,4 @@ socket.on('error', (err) => {
   console.log(`Error: ${err}`)
 })
 
-
-// let id = 0 
-// setInterval( ()=> {
-//   const msg = encode([0, +id, 'nvim_get_api_info', []]);
-//   wstream.write(msg)
-// }, 1000)
 

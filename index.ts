@@ -1,53 +1,30 @@
-import { spawn } from 'child_process';
-import { encode, decode } from '@msgpack/msgpack';
+import { encodeMessagePackRequest, decodeMessagePackResponse } from "./message_pack"
+import type { MessagePackRequest } from "./message_pack"
+import * as net from 'net'
 
-const nvim = spawn('nvim', ['--headless', '--embed']);
-
-let buffer = Buffer.alloc(0);
-const pending = new Map<number, (res: any) => void>();
-let msgId = 1;
-
-// Handle responses from Neovim
-nvim.stdout.on('data', (chunk) => {
-  buffer = Buffer.concat([buffer, chunk]);
-
-  try {
-    const msg = decode(buffer);
-    buffer = Buffer.alloc(0);
-
-    if (Array.isArray(msg) && msg[0] === 1) {
-      const [, id, err, result] = msg;
-      const cb = pending.get(id);
-      if (cb) {
-        cb(err || result);
-        pending.delete(id);
-      }
-    }
-  } catch (e) {
-    // Incomplete buffer – wait for more
+// Creates a TCP socket to connect to 127.0.0.1:7666
+const socket = new net.Socket()
+socket.connect(7666, '127.0.0.1', () => {
+  console.log('Connected')
+  const msgPackRequest: MessagePackRequest = {
+    type: 0,
+    msgid: 0,
+    method: 'nvim_buf_set_lines',
+    params: [0, 0, -1, true, ["Line 1", "Line 2"]]
   }
-});
+  const msg = encodeMessagePackRequest(msgPackRequest)
+  socket.write(msg)
+})
 
-// Send a request to Neovim
-function callNvim(method: string, params: any[]): Promise<any> {
-  const id = msgId++;
-  const msg = encode([0, id, method, params]);
-  nvim.stdin.write(msg);
-  return new Promise((resolve) => {
-    pending.set(id, resolve);
-  });
-}
+socket.on('data', (data) => {
+  const decoded = decodeMessagePackResponse(data)
+  if (decoded) {
+    console.log(`type: ${decoded.type}`)
+    console.log(`msgid: ${decoded.msgid}`)
+  }
+})
 
-(async () => {
-  const version = await callNvim('nvim_get_api_info', []);
-  console.log('API Info:', version);
-
-  // Clean exit
-  await callNvim('nvim_command', ['qa!']);
-})();
-
-// TODO, understand structure of MessagePack-RPC is
-// https://neovim.io/doc/user/api.html && https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
-// Understand what this code is doign rather than blindly following it.
-// Want to understand the spec
+socket.on('error', (err) => {
+  console.log(`Error: ${err}`)
+})
 
