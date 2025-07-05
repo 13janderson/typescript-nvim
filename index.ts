@@ -1,33 +1,23 @@
-import { encodeMessagePackRequest, decodeMessagePackResponse } from "./message_pack"
-import type { MessagePackRequest } from "./message_pack"
-import * as net from 'net'
+import { RPCMessagePackConnection } from "./connection"
+import type { NVIM_API_INFO } from "./nvim_types"
 
-const client = net.createConnection(7666, '127.0.0.1')
-
-const mpr: MessagePackRequest = {
+const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
+const nvimApiInfo = (await rpcConn.RPC({
   type: 0,
-  msgid: 1,
+  msgid: 0,
   method: "nvim_get_api_info",
   params: []
+}))?.result[1]
+
+
+const apiInfo = nvimApiInfo as NVIM_API_INFO
+const functions = apiInfo.functions
+const func = functions[0]
+if (func) {
+  console.log(func)
+  for (const param of func.parameters){
+    const paramType = param[0]
+    const paramName = param[1]
+    console.log(`${paramName}: ${paramType}`)
+  }
 }
-
-
-var buf: Buffer
-client.on('data', (data) => {
-  if (buf) {
-    buf = Buffer.concat([buf, data])
-    console.log(buf)
-  } else {
-    buf = Buffer.from(data)
-  }
-  const decodedBuffer = decodeMessagePackResponse(buf)
-  if (decodedBuffer){
-    console.log(decodedBuffer)
-  }
-})
-
-client.on('error', (err) => {
-  console.log(`Error: ${err}`)
-})
-
-client.write(encodeMessagePackRequest(mpr))
