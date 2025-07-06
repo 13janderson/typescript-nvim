@@ -1,9 +1,10 @@
-type NVIM_ARRAY = "Array";
+type NVIM_ARRAY = "Array" 
 type NVIM_BASIC_TYPES = "Nil" | "Boolean" | "Integer" | "Float" | "String" | "Dict" | NVIM_ARRAY;
 type NVIM_SPECIAL_TYPES = "Buffer" | "Window" | "Tabpage"
-type NVIM_ARRAY_TYPE = `${NVIM_ARRAY}(${Exclude<NVIM_BASIC_TYPES, "Nil"> | NVIM_SPECIAL_TYPES})`;
-type NVIM_FULL_TYPES = NVIM_BASIC_TYPES | NVIM_ARRAY_TYPE;
+type NVIM_NON_NIL_TYPES = Exclude<NVIM_BASIC_TYPES, "Nil"> | NVIM_SPECIAL_TYPES
+type NVIM_ARRAY_TYPE = `${NVIM_ARRAY}(${NVIM_NON_NIL_TYPES})` | `ArrayOf(${NVIM_NON_NIL_TYPES})`;
 
+export type NVIM_RETURN_TYPES = NVIM_NON_NIL_TYPES | NVIM_ARRAY_TYPE | "void"
 export type NVIM_API_INFO = {
   version: {
     major: number,
@@ -18,9 +19,9 @@ export type NVIM_API_INFO = {
   functions: {
     since: number,
     name: string,
-    return_type?: NVIM_FULL_TYPES | "void",
+    return_type?: NVIM_RETURN_TYPES,
     method: boolean,
-    parameters: [NVIM_FULL_TYPES, string][],
+    parameters: [NVIM_NON_NIL_TYPES, string][],
     deprecated_since?: number
   }[],
 }
