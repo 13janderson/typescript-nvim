@@ -1,7 +1,7 @@
 import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive } from "./nvim_types"
 import { RPCMessagePackConnection } from "./connection"
-import ts from "typescript"
-import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression} from "typescript"
+import ts, { type KeywordTypeSyntaxKind, type TypeNode } from "typescript"
+import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression } from "typescript"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const nvimApiInfo = (await rpcConn.RPC({
@@ -113,6 +113,7 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
 
 const RPCImportIdentifier = factory.createIdentifier("RPC")
 const RPCIdentifier = factory.createIdentifier("rpc")
+const RPCMethodIdentifier = factory.createIdentifier("RPC")
 const importDecl = factory.createImportDeclaration(
   undefined,
   factory.createImportClause(
@@ -128,16 +129,27 @@ const importDecl = factory.createImportDeclaration(
 );
 
 
-function hainedPropertyAccess(expr: Expression, identifiers: (string | ts.MemberName)[]): Expression {
+// Resolves to expr.[...identifiers]
+// E.g. expr = factory.createThis(), identifiers = ["foo", "bar"]
+//      generates expression for this.foo.bar
+function chainedPropertyAccess(expr: Expression, identifiers: (string | ts.MemberName)[], questionMark: boolean = false): Expression {
   const id = identifiers.pop()
   if (!id) {
     return expr
   }
   return (
-    factory.createPropertyAccessExpression(
-      hainedPropertyAccess(expr, identifiers),
+    factory.createPropertyAccessChain(
+      chainedPropertyAccess(expr, identifiers),
+      questionMark ? factory.createToken(SyntaxKind.QuestionDotToken) : undefined,
       id
     )
+  )
+}
+
+function promise(ofType: TypeNode): ts.TypeReferenceNode {
+  return factory.createTypeReferenceNode(
+    factory.createIdentifier("Promise"),
+    [ofType]
   )
 }
 
@@ -159,17 +171,45 @@ const classMethods = functions.map((func) => {
         undefined
       )
     ),
-    func?.return_type ? typeNodeFromNvimType(func.return_type) : undefined,
+    func?.return_type ? promise(typeNodeFromNvimType(func.return_type)) : undefined,
     factory.createBlock([
       factory.createReturnStatement(
-        factory.createCallExpression(
-          hainedPropertyAccess(
-            factory.createThis(), [RPCIdentifier, func.name]
+        chainedPropertyAccess(
+          factory.createAwaitExpression(
+            factory.createCallExpression(
+              chainedPropertyAccess(
+                factory.createThis(), [RPCIdentifier, RPCMethodIdentifier]
+              ),
+              undefined,
+              [
+                factory.createObjectLiteralExpression(
+                  [
+                    factory.createPropertyAssignment("type",
+                      factory.createNumericLiteral(0),
+                    ),
+                    factory.createPropertyAssignment("msgid",
+                      factory.createNumericLiteral(0),
+                    ),
+                    factory.createPropertyAssignment("method",
+                      factory.createStringLiteral(func.name),
+                    ),
+                    factory.createPropertyAssignment("params",
+                      factory.createArrayLiteralExpression(
+                        func.parameters.map((param) => {
+                          return factory.createIdentifier(param[1])
+                        }),
+                        false
+                      )
+
+                    ),
+                  ]
+                )
+              ]
+            )
           ),
-          undefined,
-          undefined
+          ["result"],
+          true
         )
-        // factory.createPropertyAccessExpression()
       ),
     ], true),
   )
