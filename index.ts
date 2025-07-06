@@ -1,6 +1,7 @@
-import { RPCMessagePackConnection } from "./connection"
 import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive } from "./nvim_types"
-import ts, { SyntaxKind, type DeclarationName, type ImportClause } from "typescript"
+import { RPCMessagePackConnection } from "./connection"
+import ts from "typescript"
+import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression} from "typescript"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const nvimApiInfo = (await rpcConn.RPC({
@@ -12,29 +13,27 @@ const nvimApiInfo = (await rpcConn.RPC({
 
 const apiInfo = nvimApiInfo as NVIM_API_INFO
 const functions = apiInfo.functions
-const filt = functions.filter((func) => func.name == "nvim_get_keymap")
-console.log(filt)
 
 function typeNodeFromNvimPrimitiveType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
   switch (nvimBasicType) {
     case "Boolean":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword)
     case "Integer":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
     case "Float":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
     case "String":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.StringKeyword)
     case "Dict":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
     case "Buffer":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
     case "Window":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
     case "Tabpage":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
     case "Object":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
   }
 }
 
@@ -47,7 +46,7 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
   var keyWordTypeNode: ts.KeywordTypeNode
   switch (nvimType) {
     case "Array":
-      keyWordTypeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+      keyWordTypeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
       break
     case "Array(Boolean)":
       keyWordTypeNode = typeNodeFromNvimPrimitiveType("Boolean")
@@ -104,39 +103,39 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
       keyWordTypeNode = typeNodeFromNvimPrimitiveType("Object")
       break
     case "void":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.VoidKeyword)
     default:
       console.error(`Unexpected return type ${nvimType}`)
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
   }
-  return ts.factory.createArrayTypeNode(keyWordTypeNode)
+  return factory.createArrayTypeNode(keyWordTypeNode)
 }
 
-const RPCImportIdentifier = ts.factory.createIdentifier("RPC")
-const RPCIdentifier = ts.factory.createIdentifier("rpc")
-const importDecl = ts.factory.createImportDeclaration(
+const RPCImportIdentifier = factory.createIdentifier("RPC")
+const RPCIdentifier = factory.createIdentifier("rpc")
+const importDecl = factory.createImportDeclaration(
   undefined,
-  ts.factory.createImportClause(
+  factory.createImportClause(
     false,
     undefined,
-    ts.factory.createNamedImports(
+    factory.createNamedImports(
       [
-        ts.factory.createImportSpecifier(false, ts.factory.createIdentifier("RPCMessagePackConnection"), RPCImportIdentifier)
+        factory.createImportSpecifier(false, factory.createIdentifier("RPCMessagePackConnection"), RPCImportIdentifier)
       ]
     )
   ),
-  ts.factory.createStringLiteral("./connection"),
+  factory.createStringLiteral("./connection"),
 );
 
 
-function tsChainedPropertyAccess(expr: ts.Expression, identifiers: (string | ts.MemberName)[]): ts.Expression {
+function hainedPropertyAccess(expr: Expression, identifiers: (string | ts.MemberName)[]): Expression {
   const id = identifiers.pop()
-  if (!id){
+  if (!id) {
     return expr
   }
   return (
-    ts.factory.createPropertyAccessExpression(
-      tsChainedPropertyAccess(expr, identifiers),
+    factory.createPropertyAccessExpression(
+      hainedPropertyAccess(expr, identifiers),
       id
     )
   )
@@ -144,14 +143,14 @@ function tsChainedPropertyAccess(expr: ts.Expression, identifiers: (string | ts.
 
 const classMethods = functions.map((func) => {
   console.log(`Creating class method for ${func.name}`)
-  return ts.factory.createMethodDeclaration(
-    [ts.factory.createModifier(ts.SyntaxKind.AsyncKeyword)],
+  return factory.createMethodDeclaration(
+    [factory.createModifier(SyntaxKind.AsyncKeyword)],
     undefined,
     func.name,
     undefined,
     undefined,
     func.parameters.map((param) =>
-      ts.factory.createParameterDeclaration(
+      factory.createParameterDeclaration(
         undefined,
         undefined,
         param[1],
@@ -161,57 +160,56 @@ const classMethods = functions.map((func) => {
       )
     ),
     func?.return_type ? typeNodeFromNvimType(func.return_type) : undefined,
-    ts.factory.createBlock([
-      ts.factory.createReturnStatement(
-        ts.factory.createCallExpression(
-          tsChainedPropertyAccess(
-            ts.factory.createThis(), [RPCIdentifier, func.name]
+    factory.createBlock([
+      factory.createReturnStatement(
+        factory.createCallExpression(
+          hainedPropertyAccess(
+            factory.createThis(), [RPCIdentifier, func.name]
           ),
           undefined,
           undefined
         )
-        // ts.factory.createPropertyAccessExpression()
+        // factory.createPropertyAccessExpression()
       ),
     ], true),
   )
 }
 )
 
-
-
 const className = `NvimClient`
-const classDeclaration = ts.factory.createClassDeclaration(
-  [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-  ts.factory.createIdentifier(className),
+const classDeclaration = factory.createClassDeclaration(
+  [factory.createModifier(SyntaxKind.ExportKeyword)],
+  factory.createIdentifier(className),
   undefined,
   undefined,
   [
-    ts.factory.createConstructorDeclaration(undefined, [
-      ts.factory.createParameterDeclaration(
+    factory.createConstructorDeclaration(undefined, [
+      factory.createParameterDeclaration(
         [
-          ts.factory.createModifier(SyntaxKind.PrivateKeyword)
+          factory.createModifier(SyntaxKind.PrivateKeyword)
         ],
         undefined,
         RPCIdentifier,
         undefined,
-        ts.factory.createTypeReferenceNode(RPCImportIdentifier), // Reference something else in the program, can be an identifier
+        factory.createTypeReferenceNode(RPCImportIdentifier), // Reference something else in the program, can be an identifier
         undefined
       )
-    ], ts.factory.createBlock([], false)),
+    ], factory.createBlock([], false)),
     classMethods
   ].flat(),
 );
 
 
-const printer = ts.createPrinter();
+
+const printer = createPrinter();
 
 const fileName = `Nvim_TypeScript_${apiInfo.version.major}.${apiInfo.version.minor}.ts`
 await Bun.write(
   Bun.file(fileName),
   [
-    printer.printNode(ts.EmitHint.Unspecified, importDecl, ts.createSourceFile("", "", ts.ScriptTarget.Latest)),
+    printer.printNode(ts.EmitHint.Unspecified, importDecl, createSourceFile("", "", ts.ScriptTarget.Latest)),
     "\n",
-    printer.printNode(ts.EmitHint.Unspecified, classDeclaration, ts.createSourceFile("", "", ts.ScriptTarget.Latest))
+    printer.printNode(ts.EmitHint.Unspecified, classDeclaration, createSourceFile("", "", ts.ScriptTarget.Latest))
   ]
 );
 
