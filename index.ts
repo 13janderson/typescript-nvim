@@ -128,6 +128,20 @@ const importDecl = ts.factory.createImportDeclaration(
   ts.factory.createStringLiteral("./connection"),
 );
 
+
+function tsChainedPropertyAccess(expr: ts.Expression, identifiers: (string | ts.MemberName)[]): ts.Expression {
+  const id = identifiers.pop()
+  if (!id){
+    return expr
+  }
+  return (
+    ts.factory.createPropertyAccessExpression(
+      tsChainedPropertyAccess(expr, identifiers),
+      id
+    )
+  )
+}
+
 const classMethods = functions.map((func) => {
   console.log(`Creating class method for ${func.name}`)
   return ts.factory.createMethodDeclaration(
@@ -150,12 +164,8 @@ const classMethods = functions.map((func) => {
     ts.factory.createBlock([
       ts.factory.createReturnStatement(
         ts.factory.createCallExpression(
-          ts.factory.createPropertyAccessExpression(
-            (ts.factory.createPropertyAccessExpression(
-              ts.factory.createThis(),
-              RPCIdentifier
-            )),
-            func.name
+          tsChainedPropertyAccess(
+            ts.factory.createThis(), [RPCIdentifier, func.name]
           ),
           undefined,
           undefined
