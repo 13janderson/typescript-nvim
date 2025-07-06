@@ -1,6 +1,6 @@
 import { RPCMessagePackConnection } from "./connection"
-import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive} from "./nvim_types"
-import ts from "typescript"
+import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive } from "./nvim_types"
+import ts, { type DeclarationName, type ImportClause } from "typescript"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const nvimApiInfo = (await rpcConn.RPC({
@@ -14,24 +14,8 @@ const apiInfo = nvimApiInfo as NVIM_API_INFO
 const functions = apiInfo.functions
 const filt = functions.filter((func) => func.name == "nvim_get_keymap")
 console.log(filt)
-// if (func) {
-//   console.log(func)
-//   for (const param of func.parameters) {
-//     const paramType = param[0]
-//     const paramName = param[1]
-//     // TODO, translate this to javascript types.
-//     // and then subsequently generate typescript methods
-//     // with these type signatures.
-//     // Is there a nice way to generate these at runtime?
-//     // Or is there a nice codegen library for this? Having to write stringified typescript to a file is dogshit.
-//
-//     // TypeScript native way to create file with some contents.
-//     console.log(`${paramName}: ${paramType}`)
-//   }
-// }
 
-
-function primitiveMethodReturnType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
+function typeNodeFromNvimPrimitiveType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
   switch (nvimBasicType) {
     case "Boolean":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
@@ -55,77 +39,76 @@ function primitiveMethodReturnType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTyp
 }
 
 // We want to handle the basic types elsewhere for clarity to for re-usability
-function methodReturnType(nvimReturnType: NVIM_RETURN): ts.TypeNode {
-  if (isNvimPrimitive(nvimReturnType)) {
-    return primitiveMethodReturnType(nvimReturnType)
+function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
+  if (isNvimPrimitive(nvimType)) {
+    return typeNodeFromNvimPrimitiveType(nvimType)
   }
 
   var keyWordTypeNode: ts.KeywordTypeNode
-  switch (nvimReturnType) {
+  switch (nvimType) {
     case "Array":
       keyWordTypeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
       break
     case "Array(Boolean)":
-      keyWordTypeNode = primitiveMethodReturnType("Boolean")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Boolean")
       break
     case "Array(Integer)":
-      keyWordTypeNode = primitiveMethodReturnType("Integer")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Integer")
       break
     case "Array(Float)":
-      keyWordTypeNode = primitiveMethodReturnType("Float")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Float")
       break
     case "Array(String)":
-      keyWordTypeNode = primitiveMethodReturnType("String")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("String")
       break
     case "Array(Dict)":
-      keyWordTypeNode = primitiveMethodReturnType("Dict")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Dict")
       break
     case "Array(Buffer)":
-      keyWordTypeNode = primitiveMethodReturnType("Buffer")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Buffer")
       break
     case "Array(Tabpage)":
-      keyWordTypeNode = primitiveMethodReturnType("Tabpage")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Tabpage")
       break
     case "Array(Window)":
-      keyWordTypeNode = primitiveMethodReturnType("Window")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Window")
       break
     case "Array(Object)":
-      keyWordTypeNode = primitiveMethodReturnType("Object")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Object")
       break
     case "ArrayOf(Boolean)":
-      keyWordTypeNode = primitiveMethodReturnType("Boolean")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Boolean")
       break
     case "ArrayOf(Integer)":
-      keyWordTypeNode = primitiveMethodReturnType("Integer")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Integer")
       break
     case "ArrayOf(Float)":
-      keyWordTypeNode = primitiveMethodReturnType("Float")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Float")
       break
     case "ArrayOf(String)":
-      keyWordTypeNode = primitiveMethodReturnType("String")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("String")
       break
     case "ArrayOf(Dict)":
-      keyWordTypeNode = primitiveMethodReturnType("Dict")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Dict")
       break
     case "ArrayOf(Buffer)":
-      keyWordTypeNode = primitiveMethodReturnType("Buffer")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Buffer")
       break
     case "ArrayOf(Tabpage)":
-      keyWordTypeNode = primitiveMethodReturnType("Tabpage")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Tabpage")
       break
     case "ArrayOf(Window)":
-      keyWordTypeNode = primitiveMethodReturnType("Window")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Window")
       break
     case "ArrayOf(Object)":
-      keyWordTypeNode = primitiveMethodReturnType("Object")
+      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Object")
       break
     case "void":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
-    default: 
-      console.error(`Unexpected return type ${nvimReturnType}`)
+    default:
+      console.error(`Unexpected return type ${nvimType}`)
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
   }
-
   return ts.factory.createArrayTypeNode(keyWordTypeNode)
 }
 
@@ -137,8 +120,17 @@ const classMethods = functions.map((func) => {
     func.name,
     undefined,
     undefined,
-    [], // parameters
-    func?.return_type ? methodReturnType(func.return_type) : undefined,
+    func.parameters.map((param) =>
+      ts.factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        param[1],
+        undefined,
+        typeNodeFromNvimType(param[0]),
+        undefined
+      )
+    ),
+    func?.return_type ? typeNodeFromNvimType(func.return_type) : undefined,
     ts.factory.createBlock([
     ], true),
   )
@@ -153,14 +145,34 @@ const classDeclaration = ts.factory.createClassDeclaration(
   undefined,
   undefined,
   [
-    ts.factory.createConstructorDeclaration(undefined, [], undefined),
+    ts.factory.createConstructorDeclaration(undefined, [
+      ts.factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        "rpc",
+        undefined,
+        undefined,
+        ts.factory.createNumericLiteral(69)
+      )
+    ], undefined),
     classMethods
   ].flat(),
 );
 
-// console.log(
-//   printer.printNode(ts.EmitHint.Unspecified, classDeclaration, ts.createSourceFile("", "", ts.ScriptTarget.Latest))
-// )
+
+const importDecl = ts.factory.createImportDeclaration(
+  undefined,
+  ts.factory.createImportClause(
+    false,
+    undefined,
+    ts.factory.createNamedImports(
+      [
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("RPCMessagePackConnection"))
+      ]
+    )
+  ),
+  ts.factory.createStringLiteral("./connection"),
+);
 
 
 const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
@@ -168,7 +180,11 @@ const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 const fileName = `Nvim_TypeScript_${apiInfo.version.major}.${apiInfo.version.minor}.ts`
 await Bun.write(
   Bun.file(fileName),
-  printer.printNode(ts.EmitHint.Unspecified, classDeclaration, ts.createSourceFile("", "", ts.ScriptTarget.Latest))
+  [
+    printer.printNode(ts.EmitHint.Unspecified, importDecl , ts.createSourceFile("", "", ts.ScriptTarget.Latest)),
+    "\n",
+    printer.printNode(ts.EmitHint.Unspecified, classDeclaration, ts.createSourceFile("", "", ts.ScriptTarget.Latest))
+  ]
 );
 
 
