@@ -112,7 +112,8 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
   return ts.factory.createArrayTypeNode(keyWordTypeNode)
 }
 
-const RPCIdentifier = ts.factory.createIdentifier("RPC")
+const RPCImportIdentifier = ts.factory.createIdentifier("RPC")
+const RPCIdentifier = ts.factory.createIdentifier("rpc")
 const importDecl = ts.factory.createImportDeclaration(
   undefined,
   ts.factory.createImportClause(
@@ -120,7 +121,7 @@ const importDecl = ts.factory.createImportDeclaration(
     undefined,
     ts.factory.createNamedImports(
       [
-        ts.factory.createImportSpecifier(false, ts.factory.createIdentifier("RPCMessagePackConnection"), RPCIdentifier)
+        ts.factory.createImportSpecifier(false, ts.factory.createIdentifier("RPCMessagePackConnection"), RPCImportIdentifier)
       ]
     )
   ),
@@ -147,7 +148,20 @@ const classMethods = functions.map((func) => {
     ),
     func?.return_type ? typeNodeFromNvimType(func.return_type) : undefined,
     ts.factory.createBlock([
-      // this.rpc
+      ts.factory.createReturnStatement(
+        ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            (ts.factory.createPropertyAccessExpression(
+              ts.factory.createThis(),
+              RPCIdentifier
+            )),
+            func.name
+          ),
+          undefined,
+          undefined
+        )
+        // ts.factory.createPropertyAccessExpression()
+      ),
     ], true),
   )
 }
@@ -168,9 +182,9 @@ const classDeclaration = ts.factory.createClassDeclaration(
           ts.factory.createModifier(SyntaxKind.PrivateKeyword)
         ],
         undefined,
-        "rpc",
+        RPCIdentifier,
         undefined,
-        ts.factory.createTypeReferenceNode(RPCIdentifier), // Reference something else in the program, can be an identifier
+        ts.factory.createTypeReferenceNode(RPCImportIdentifier), // Reference something else in the program, can be an identifier
         undefined
       )
     ], ts.factory.createBlock([], false)),
