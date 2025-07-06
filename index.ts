@@ -1,6 +1,6 @@
 import { RPCMessagePackConnection } from "./connection"
 import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive } from "./nvim_types"
-import ts, { type DeclarationName, type ImportClause } from "typescript"
+import ts, { SyntaxKind, type DeclarationName, type ImportClause } from "typescript"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const nvimApiInfo = (await rpcConn.RPC({
@@ -112,6 +112,21 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
   return ts.factory.createArrayTypeNode(keyWordTypeNode)
 }
 
+const RPCIdentifier = ts.factory.createIdentifier("RPC")
+const importDecl = ts.factory.createImportDeclaration(
+  undefined,
+  ts.factory.createImportClause(
+    false,
+    undefined,
+    ts.factory.createNamedImports(
+      [
+        ts.factory.createImportSpecifier(false, ts.factory.createIdentifier("RPCMessagePackConnection"), RPCIdentifier)
+      ]
+    )
+  ),
+  ts.factory.createStringLiteral("./connection"),
+);
+
 const classMethods = functions.map((func) => {
   console.log(`Creating class method for ${func.name}`)
   return ts.factory.createMethodDeclaration(
@@ -132,13 +147,15 @@ const classMethods = functions.map((func) => {
     ),
     func?.return_type ? typeNodeFromNvimType(func.return_type) : undefined,
     ts.factory.createBlock([
+      // this.rpc
     ], true),
   )
 }
 )
 
-const className = `NvimClient`
 
+
+const className = `NvimClient`
 const classDeclaration = ts.factory.createClassDeclaration(
   [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
   ts.factory.createIdentifier(className),
@@ -147,41 +164,28 @@ const classDeclaration = ts.factory.createClassDeclaration(
   [
     ts.factory.createConstructorDeclaration(undefined, [
       ts.factory.createParameterDeclaration(
-        undefined,
+        [
+          ts.factory.createModifier(SyntaxKind.PrivateKeyword)
+        ],
         undefined,
         "rpc",
         undefined,
-        undefined,
-        ts.factory.createNumericLiteral(69)
+        ts.factory.createTypeReferenceNode(RPCIdentifier), // Reference something else in the program, can be an identifier
+        undefined
       )
-    ], undefined),
+    ], ts.factory.createBlock([], false)),
     classMethods
   ].flat(),
 );
 
 
-const importDecl = ts.factory.createImportDeclaration(
-  undefined,
-  ts.factory.createImportClause(
-    false,
-    undefined,
-    ts.factory.createNamedImports(
-      [
-        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("RPCMessagePackConnection"))
-      ]
-    )
-  ),
-  ts.factory.createStringLiteral("./connection"),
-);
-
-
-const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+const printer = ts.createPrinter();
 
 const fileName = `Nvim_TypeScript_${apiInfo.version.major}.${apiInfo.version.minor}.ts`
 await Bun.write(
   Bun.file(fileName),
   [
-    printer.printNode(ts.EmitHint.Unspecified, importDecl , ts.createSourceFile("", "", ts.ScriptTarget.Latest)),
+    printer.printNode(ts.EmitHint.Unspecified, importDecl, ts.createSourceFile("", "", ts.ScriptTarget.Latest)),
     "\n",
     printer.printNode(ts.EmitHint.Unspecified, classDeclaration, ts.createSourceFile("", "", ts.ScriptTarget.Latest))
   ]
