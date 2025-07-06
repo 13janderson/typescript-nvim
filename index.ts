@@ -1,5 +1,5 @@
 import { RPCMessagePackConnection } from "./connection"
-import type { NVIM_API_INFO, NVIM_RETURN_TYPES } from "./nvim_types"
+import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive} from "./nvim_types"
 import ts from "typescript"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
@@ -31,8 +31,8 @@ console.log(filt)
 // }
 
 
-function methodReturnType(nvimReturnType: NVIM_RETURN_TYPES): ts.TypeNode {
-  switch (nvimReturnType) {
+function primitiveMethodReturnType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
+  switch (nvimBasicType) {
     case "Boolean":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
     case "Integer":
@@ -43,51 +43,90 @@ function methodReturnType(nvimReturnType: NVIM_RETURN_TYPES): ts.TypeNode {
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
     case "Dict":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword)
-    case "Array":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))
     case "Buffer":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
     case "Window":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
     case "Tabpage":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
-    case "Array(Boolean)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword))
-    case "Array(Integer)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword))
-    case "Array(Float)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword))
-    case "Array(String)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword))
-    case "Array(Dict)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword))
-    case "Array(Array)":
-      return ts.factory.createArrayTypeNode(ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)))
-    case "Array(Buffer)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword))
-    case "Array(Window)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword))
-    case "Array(Tabpage)":
-      return ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword))
-    case "void":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
-    case "ArrayOf(Boolean)":
-    case "ArrayOf(Integer)":
-    case "ArrayOf(Float)":
-    case "ArrayOf(String)":
-    case "ArrayOf(Dict)":
-    case "ArrayOf(Array)":
-    case "ArrayOf(Buffer)":
-    case "ArrayOf(Window)":
-    case "ArrayOf(Tabpage)":
-    default:
-      console.log(`DEFAULT CASE: ${nvimReturnType}`)
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+    case "Object":
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword)
+  }
+}
+
+// We want to handle the basic types elsewhere for clarity to for re-usability
+function methodReturnType(nvimReturnType: NVIM_RETURN): ts.TypeNode {
+  if (isNvimPrimitive(nvimReturnType)) {
+    return primitiveMethodReturnType(nvimReturnType)
   }
 
-  // This function is dogshit.
-  // Can definitely make this 10x more elegant
-  // Switch statement is not our friend here I don't think
+  var keyWordTypeNode: ts.KeywordTypeNode
+  switch (nvimReturnType) {
+    case "Array":
+      keyWordTypeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+      break
+    case "Array(Boolean)":
+      keyWordTypeNode = primitiveMethodReturnType("Boolean")
+      break
+    case "Array(Integer)":
+      keyWordTypeNode = primitiveMethodReturnType("Integer")
+      break
+    case "Array(Float)":
+      keyWordTypeNode = primitiveMethodReturnType("Float")
+      break
+    case "Array(String)":
+      keyWordTypeNode = primitiveMethodReturnType("String")
+      break
+    case "Array(Dict)":
+      keyWordTypeNode = primitiveMethodReturnType("Dict")
+      break
+    case "Array(Buffer)":
+      keyWordTypeNode = primitiveMethodReturnType("Buffer")
+      break
+    case "Array(Tabpage)":
+      keyWordTypeNode = primitiveMethodReturnType("Tabpage")
+      break
+    case "Array(Window)":
+      keyWordTypeNode = primitiveMethodReturnType("Window")
+      break
+    case "Array(Object)":
+      keyWordTypeNode = primitiveMethodReturnType("Object")
+      break
+    case "ArrayOf(Boolean)":
+      keyWordTypeNode = primitiveMethodReturnType("Boolean")
+      break
+    case "ArrayOf(Integer)":
+      keyWordTypeNode = primitiveMethodReturnType("Integer")
+      break
+    case "ArrayOf(Float)":
+      keyWordTypeNode = primitiveMethodReturnType("Float")
+      break
+    case "ArrayOf(String)":
+      keyWordTypeNode = primitiveMethodReturnType("String")
+      break
+    case "ArrayOf(Dict)":
+      keyWordTypeNode = primitiveMethodReturnType("Dict")
+      break
+    case "ArrayOf(Buffer)":
+      keyWordTypeNode = primitiveMethodReturnType("Buffer")
+      break
+    case "ArrayOf(Tabpage)":
+      keyWordTypeNode = primitiveMethodReturnType("Tabpage")
+      break
+    case "ArrayOf(Window)":
+      keyWordTypeNode = primitiveMethodReturnType("Window")
+      break
+    case "ArrayOf(Object)":
+      keyWordTypeNode = primitiveMethodReturnType("Object")
+      break
+    case "void":
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
+    default: 
+      console.error(`Unexpected return type ${nvimReturnType}`)
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+  }
+
+  return ts.factory.createArrayTypeNode(keyWordTypeNode)
 }
 
 const classMethods = functions.map((func) => {
