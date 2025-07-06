@@ -29,7 +29,7 @@ export type NVIM_API_INFO = {
 
 
 // Debugging function to recursively print an object and all of its nested properties
-export function logObject(obj: object, call_count: number) {
+export function logObject(obj: object, call_count: number = 0) {
   Object.entries(obj).forEach(([key, value]) => {
     console.log(`${"\t".repeat(call_count)}${key}:${value}`)
     if (value && typeof value === "object") {

@@ -1,5 +1,7 @@
+import { log } from "console"
 import type { MessagePackRequest, MessagePackResponse } from "./message_pack"
 import { encodeMessagePackRequest, decodeMessagePackResponse } from "./message_pack"
+import { logObject } from "./nvim_types"
 import * as net from 'net'
 
 
@@ -8,8 +10,6 @@ import * as net from 'net'
 * This class is not thread safe.
 * That is, you SHOULD not make concurrent RPC calls using a single instance of this class
 */
-
-
 export class RPCMessagePackConnection{
   private socket: net.Socket
   constructor(
@@ -29,6 +29,8 @@ export class RPCMessagePackConnection{
       }
       const decodedBuffer = decodeMessagePackResponse(this.rpcDataBuffer)
       if (decodedBuffer) {
+        console.log(`Successfully decoded data`)
+        console.log(decodedBuffer)
         this.rpcDataBuffer = undefined
         const pendingPromise = this.rpcPending.get(decodedBuffer.msgid)
         console.log('Resolving promise')
