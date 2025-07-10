@@ -1,4 +1,4 @@
-import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN, type NVIM_ALL, isNvimPrimitive, logObject } from "./nvim_types"
+import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN, type NVIM_ALL, logObject, type NVIM_PRIMITIVE_SPECIAL, isNvimPrimitive, isNvimSpecial, type NVIM_SPECIAL } from "./nvim_types"
 import { RPCMessagePackConnection } from "./connection"
 import ts, { type TypeNode } from "typescript"
 import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression } from "typescript"
@@ -19,124 +19,8 @@ const nvimApiInfo = (await rpcConn.RPC({
 }))?.result[1]
 
 const apiInfo = nvimApiInfo as NVIM_API_INFO
-logObject(apiInfo)
+logObject(apiInfo.types)
 const functions = apiInfo.functions
-
-function typeNodeFromNvimPrimitiveType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
-  switch (nvimBasicType) {
-    case "Boolean":
-      return factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword)
-    case "Integer":
-      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
-    case "Float":
-      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
-    case "String":
-      return factory.createKeywordTypeNode(SyntaxKind.StringKeyword)
-    case "Dict":
-      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
-    case "Buffer":
-      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
-    case "Window":
-      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
-    case "Tabpage":
-      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
-    case "Object":
-      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
-  }
-}
-
-// We want to handle the basic types elsewhere for clarity to for re-usability
-function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
-  if (isNvimPrimitive(nvimType)) {
-    return typeNodeFromNvimPrimitiveType(nvimType)
-  }
-
-  var keyWordTypeNode: ts.KeywordTypeNode
-  switch (nvimType) {
-    case "Array":
-      keyWordTypeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
-      break
-    case "Array(Boolean)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Boolean")
-      break
-    case "Array(Integer)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Integer")
-      break
-    case "Array(Float)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Float")
-      break
-    case "Array(String)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("String")
-      break
-    case "Array(Dict)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Dict")
-      break
-    case "Array(Buffer)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Buffer")
-      break
-    case "Array(Tabpage)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Tabpage")
-      break
-    case "Array(Window)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Window")
-      break
-    case "Array(Object)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Object")
-      break
-    case "ArrayOf(Boolean)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Boolean")
-      break
-    case "ArrayOf(Integer)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Integer")
-      break
-    case "ArrayOf(Float)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Float")
-      break
-    case "ArrayOf(String)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("String")
-      break
-    case "ArrayOf(Dict)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Dict")
-      break
-    case "ArrayOf(Buffer)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Buffer")
-      break
-    case "ArrayOf(Tabpage)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Tabpage")
-      break
-    case "ArrayOf(Window)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Window")
-      break
-    case "ArrayOf(Object)":
-      keyWordTypeNode = typeNodeFromNvimPrimitiveType("Object")
-      break
-    case "void":
-      return factory.createKeywordTypeNode(SyntaxKind.VoidKeyword)
-    default:
-      console.error(`Unexpected return type ${nvimType}`)
-      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
-  }
-  return factory.createArrayTypeNode(keyWordTypeNode)
-}
-
-const RPCImportIdentifier = factory.createIdentifier("RPC")
-const RPCIdentifier = factory.createIdentifier("rpc")
-const RPCMethodIdentifier = factory.createIdentifier("RPC")
-const msgidIdentifier = factory.createIdentifier("msgid")
-const importDecl = factory.createImportDeclaration(
-  undefined,
-  factory.createImportClause(
-    false,
-    undefined,
-    factory.createNamedImports(
-      [
-        factory.createImportSpecifier(false, factory.createIdentifier("RPCMessagePackConnection"), RPCImportIdentifier)
-      ]
-    )
-  ),
-  factory.createStringLiteral("./connection"),
-);
-
 
 // Resolves to expr.[...identifiers]
 // E.g. expr = factory.createThis(), identifiers = ["foo", "bar"]
@@ -162,6 +46,171 @@ function promise(ofType: TypeNode): ts.TypeReferenceNode {
   )
 }
 
+
+function typeNodeFromNvimPrimitive(nvimPrimitive: NVIM_PRIMITIVE): ts.KeywordTypeNode {
+  switch (nvimPrimitive) {
+    case "Boolean":
+      return factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword)
+    case "Integer":
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+    case "Float":
+      return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+    case "String":
+      return factory.createKeywordTypeNode(SyntaxKind.StringKeyword)
+    case "Dict":
+      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+    case "Object":
+      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+    default:
+      console.error(`Unexpected type ${nvimPrimitive}`)
+      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+  }
+}
+
+function typeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.KeywordTypeNode {
+  return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+}
+
+function typeNodeFromNvimType(nvimType: NVIM_PRIMITIVE_SPECIAL): ts.TypeNode {
+  if (isNvimPrimitive(nvimType)) {
+    return typeNodeFromNvimPrimitive(nvimType)
+  }else{
+    return typeNodeFromNvimSpecial(nvimType)
+  }
+}
+
+
+function returnTypeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.TypeReferenceType {
+  switch (nvimSpecial) {
+    case "Buffer":
+      return factory.createTypeReferenceNode(NVIMBufferExtReturnImportIdentifier)
+    case "Tabpage":
+      return factory.createTypeReferenceNode(NVIMTabpageExtReturnImportIdentifier)
+    case "Window":
+      return factory.createTypeReferenceNode(NVIMWindowExtReturnImportIdentifier)
+  }
+}
+
+function returnTypeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
+  if (isNvimPrimitive(nvimType)) {
+    return typeNodeFromNvimPrimitive(nvimType)
+  }
+
+  if (isNvimSpecial(nvimType)) {
+    return returnTypeNodeFromNvimSpecial(nvimType)
+  }
+
+  var typeNode: TypeNode
+  switch (nvimType) {
+    case "Array":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+      break
+    case "Array(Boolean)":
+      typeNode = typeNodeFromNvimPrimitive("Boolean")
+      break
+    case "Array(Integer)":
+      typeNode = typeNodeFromNvimPrimitive("Integer")
+      break
+    case "Array(Float)":
+      typeNode = typeNodeFromNvimPrimitive("Float")
+      break
+    case "Array(String)":
+      typeNode = typeNodeFromNvimPrimitive("String")
+      break
+    case "Array(Dict)":
+      typeNode = typeNodeFromNvimPrimitive("Dict")
+      break
+    case "Array(Buffer)":
+      typeNode = returnTypeNodeFromNvimSpecial("Buffer")
+      break
+    case "Array(Tabpage)":
+      typeNode = returnTypeNodeFromNvimSpecial("Tabpage")
+      break
+    case "Array(Window)":
+      typeNode = returnTypeNodeFromNvimSpecial("Window")
+      break
+    case "Array(Object)":
+      typeNode = typeNodeFromNvimPrimitive("Object")
+      break
+    case "ArrayOf(Boolean)":
+      typeNode = typeNodeFromNvimPrimitive("Boolean")
+      break
+    case "ArrayOf(Integer)":
+      typeNode = typeNodeFromNvimPrimitive("Integer")
+      break
+    case "ArrayOf(Float)":
+      typeNode = typeNodeFromNvimPrimitive("Float")
+      break
+    case "ArrayOf(String)":
+      typeNode = typeNodeFromNvimPrimitive("String")
+      break
+    case "ArrayOf(Dict)":
+      typeNode = typeNodeFromNvimPrimitive("Dict")
+      break
+    case "ArrayOf(Buffer)":
+      typeNode = returnTypeNodeFromNvimSpecial("Buffer")
+      break
+    case "ArrayOf(Tabpage)":
+      typeNode = returnTypeNodeFromNvimSpecial("Tabpage")
+      break
+    case "ArrayOf(Window)":
+      typeNode = returnTypeNodeFromNvimSpecial("Window")
+      break
+    case "ArrayOf(Object)":
+      typeNode = typeNodeFromNvimPrimitive("Object")
+      break
+    case "void":
+      return factory.createKeywordTypeNode(SyntaxKind.VoidKeyword)
+    default:
+      console.error(`Unexpected return type ${nvimType}`)
+      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+  }
+  return factory.createArrayTypeNode(typeNode)
+}
+
+// Identifiers
+const RPCImportIdentifier = factory.createIdentifier("RPC")
+const NVIMBufferExtReturnImportIdentifier = factory.createIdentifier("NVIM_BUFFER_EXT_RETURN")
+const NVIMWindowExtReturnImportIdentifier = factory.createIdentifier("NVIM_WINDOW_EXT_RETURN")
+const NVIMTabpageExtReturnImportIdentifier = factory.createIdentifier("NVIM_TABPAGE_EXT_RETURN")
+const RPCIdentifier = factory.createIdentifier("rpc")
+const RPCMethodIdentifier = factory.createIdentifier("RPC")
+const msgidIdentifier = factory.createIdentifier("msgid")
+
+
+// Import RPCMessagePackConnection
+const rpcImportDecl = factory.createImportDeclaration(
+  undefined,
+  factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamedImports(
+      [
+        factory.createImportSpecifier(false, factory.createIdentifier("RPCMessagePackConnection"), RPCImportIdentifier)
+      ]
+    )
+  ),
+  factory.createStringLiteral("./connection"),
+);
+
+const nvimTypesImportDecl = factory.createImportDeclaration(
+  undefined,
+  factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamedImports(
+      [
+        factory.createImportSpecifier(true, undefined, NVIMBufferExtReturnImportIdentifier),
+        factory.createImportSpecifier(true, undefined, NVIMWindowExtReturnImportIdentifier),
+        factory.createImportSpecifier(true, undefined, NVIMTabpageExtReturnImportIdentifier),
+      ]
+    )
+  ),
+  factory.createStringLiteral("./nvim_types"),
+);
+
+
+// Create async class methods which call our to rpc client
 const classMethods = functions.map((func) => {
   return factory.createMethodDeclaration(
     [factory.createModifier(SyntaxKind.AsyncKeyword)],
@@ -179,7 +228,7 @@ const classMethods = functions.map((func) => {
         undefined
       )
     ),
-    func?.return_type ? promise(typeNodeFromNvimType(func.return_type)) : undefined,
+    func?.return_type ? promise(returnTypeNodeFromNvimType(func.return_type)) : undefined,
     factory.createBlock([
       factory.createReturnStatement(
         chainedPropertyAccess(
@@ -271,7 +320,9 @@ const fileName = `Nvim_TypeScript_${apiInfo.version.major}.${apiInfo.version.min
 await Bun.write(
   Bun.file(fileName),
   [
-    printer.printNode(ts.EmitHint.Unspecified, importDecl, createSourceFile("", "", ts.ScriptTarget.Latest)),
+    printer.printNode(ts.EmitHint.Unspecified, rpcImportDecl, createSourceFile("", "", ts.ScriptTarget.Latest)),
+    "\n",
+    printer.printNode(ts.EmitHint.Unspecified, nvimTypesImportDecl, createSourceFile("", "", ts.ScriptTarget.Latest)),
     "\n",
     printer.printNode(ts.EmitHint.Unspecified, classDeclaration, createSourceFile("", "", ts.ScriptTarget.Latest))
   ]

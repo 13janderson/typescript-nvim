@@ -30,7 +30,6 @@ export class RPCMessagePackConnection{
       const decodedBuffer = decodeMessagePackResponse(this.rpcDataBuffer)
       if (decodedBuffer) {
         console.log(`Successfully decoded data`)
-        console.log(decodedBuffer)
         this.rpcDataBuffer = undefined
         const pendingPromise = this.rpcPending.get(decodedBuffer.msgid)
         console.log('Resolving promise')
