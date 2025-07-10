@@ -6,27 +6,25 @@ export type NVIM_SPECIAL = (typeof nvimSpecialTypes[number])
 
 type NVIM_PRIMITIVE_SPECIAL = NVIM_PRIMITIVE | NVIM_SPECIAL
 
-export function isNvimPrimitive(value: any): value is NVIM_PRIMITIVE{
+export function isNvimPrimitive(value: any): value is NVIM_PRIMITIVE {
   return typeof value === "string" && nvimPrimitiveTypes.includes(value as any)
 }
 
-export function isNvimSpecial(value: any): value is NVIM_SPECIAL{
+export function isNvimSpecial(value: any): value is NVIM_SPECIAL {
   return typeof value === "string" && nvimSpecialTypes.includes(value as any)
 }
 export type NVIM_ARRAY = `Array` | `Array(${NVIM_PRIMITIVE_SPECIAL})` | `ArrayOf(${NVIM_PRIMITIVE_SPECIAL})`;
 export type NVIM_ALL = NVIM_PRIMITIVE | NVIM_SPECIAL | NVIM_ARRAY
 
 type NVIM_EXT_RETURN<T> = {
-  Ext: {
-    type: T,
-    data: object 
-  }
+  type: T,
+  data: number[]
 }
 export type NVIM_BUFFER_EXT_RETURN = NVIM_EXT_RETURN<0>
 export type NVIM_WINDOW_EXT_RETURN = NVIM_EXT_RETURN<1>
 export type NVIM_TABPAGE_EXT_RETURN = NVIM_EXT_RETURN<2>
 
-export type NVIM_RETURN = NVIM_ALL | "void"
+export type NVIM_RETURN = NVIM_ALL | "void" 
 export type NVIM_API_INFO = {
   version: {
     major: number,

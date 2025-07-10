@@ -29,10 +29,10 @@ export class RPCMessagePackConnection{
       }
       const decodedBuffer = decodeMessagePackResponse(this.rpcDataBuffer)
       if (decodedBuffer) {
-        console.log(`Successfully decoded data`)
+        const msgid = decodedBuffer.msgid
         this.rpcDataBuffer = undefined
-        const pendingPromise = this.rpcPending.get(decodedBuffer.msgid)
-        console.log('Resolving promise')
+        const pendingPromise = this.rpcPending.get(msgid)
+        this.rpcPending.delete(msgid)
         if (pendingPromise){
           pendingPromise(decodedBuffer)
         }
@@ -54,6 +54,7 @@ export class RPCMessagePackConnection{
   }
 
   RPC(req: MessagePackRequest): Promise<MessagePackResponse | undefined> {
+    logObject(req)
     return new Promise((resolve) => {
       if (this.rpcPending.size == 0)  {
         // No current RPC calls are awaiting data and so we can safely perform this call

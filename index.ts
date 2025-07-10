@@ -5,14 +5,22 @@ import { NvimClient } from "./Nvim_TypeScript_0.12"
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const client = new NvimClient(rpcConn)
 
-// await client.nvim_buf_set_lines(0, 0, -1, false, [
-//   "Hello",
-//   "From",
-//   "TypeScript"
-// ])
+const bufnr = (await client.nvim_create_buf(true, false)).data[0]
+// console.log("Resolved")
+// const current_bufnr = await client.nvim_get_current_buf()
+// console.log(`current_bufnr:${current_bufnr.data}`)
+// console.log("Resolved")
 
-const bufnr = await client.nvim_get_current_tabpage()
-logObject(bufnr)
+// await client.nvim_set_current_buf(bufnr!)
+
+await client.nvim_buf_set_lines(bufnr!, 0, -1, false, [
+  "Hello",
+  "From",
+  "NewBuffer"
+])
+
+
+// console.log(tabpage.Ext.data)
 // const ext = bufnr.ExtData
 // console.log(`ext:${ext}`)
 

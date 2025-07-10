@@ -71,12 +71,78 @@ function typeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.KeywordTypeNode 
   return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
 }
 
-function typeNodeFromNvimType(nvimType: NVIM_PRIMITIVE_SPECIAL): ts.TypeNode {
+function typeNodeFromNvimType(nvimType: NVIM_ALL): ts.TypeNode {
   if (isNvimPrimitive(nvimType)) {
     return typeNodeFromNvimPrimitive(nvimType)
-  }else{
+  } else if (isNvimSpecial(nvimType)) {
     return typeNodeFromNvimSpecial(nvimType)
   }
+
+  var typeNode: TypeNode
+  switch (nvimType) {
+    case "Array":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+      break
+    case "Array(Boolean)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword)
+      break
+    case "Array(Integer)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+      break
+    case "Array(Float)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+      break
+    case "Array(String)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.StringKeyword)
+      break
+    case "Array(Dict)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      break
+    case "Array(Object)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      break
+    case "Array(Buffer)":
+      typeNode = factory.createTypeReferenceNode(NVIMBufferExtReturnImportIdentifier)
+      break
+    case "Array(Tabpage)":
+      typeNode = factory.createTypeReferenceNode(NVIMTabpageExtReturnImportIdentifier)
+      break
+    case "Array(Window)":
+      typeNode = factory.createTypeReferenceNode(NVIMWindowExtReturnImportIdentifier)
+      break
+    case "ArrayOf(Boolean)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.BooleanKeyword)
+      break
+    case "ArrayOf(Integer)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+      break
+    case "ArrayOf(Float)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+      break
+    case "ArrayOf(String)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.StringKeyword)
+      break
+    case "ArrayOf(Dict)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      break
+    case "ArrayOf(Object)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      break
+    case "ArrayOf(Buffer)":
+      typeNode = factory.createTypeReferenceNode(NVIMBufferExtReturnImportIdentifier)
+      break
+    case "ArrayOf(Tabpage)":
+      typeNode = factory.createTypeReferenceNode(NVIMWindowExtReturnImportIdentifier)
+      break
+    case "ArrayOf(Window)":
+      typeNode = factory.createTypeReferenceNode(NVIMWindowExtReturnImportIdentifier)
+      break
+    default:
+      console.error(`Unexpected type ${nvimType}`)
+      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+  }
+  return factory.createArrayTypeNode(typeNode)
+
 }
 
 
