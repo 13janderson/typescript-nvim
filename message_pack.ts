@@ -1,10 +1,17 @@
-import { encode, decode, Decoder} from '@msgpack/msgpack';
+import { encode, decode } from '@msgpack/msgpack'
 
 export interface MessagePackRequest {
   type: 0,
   msgid: number,
   method: string,
   params: any[]
+}
+
+export interface MessagePackResponse {
+  type: 1,
+  msgid: number,
+  error: string | null | undefined,
+  result: any
 }
 
 export function encodeMessagePackRequest(req: MessagePackRequest): Uint8Array {
@@ -31,12 +38,4 @@ export function decodeMessagePackResponse(res: Buffer | unknown): MessagePackRes
   } catch{
   }
 }
-
-export interface MessagePackResponse {
-  type: 1,
-  msgid: number,
-  error: string | null | undefined,
-  result: any
-}
-
 

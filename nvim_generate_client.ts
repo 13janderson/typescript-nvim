@@ -1,17 +1,16 @@
-import { type NVIM_API_INFO, type NVIM_RETURN, type NVIM_PRIMITIVE, isNvimPrimitive } from "./nvim_types"
+import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN, type NVIM_ALL, isNvimPrimitive, logObject } from "./nvim_types"
 import { RPCMessagePackConnection } from "./connection"
 import ts, { type TypeNode } from "typescript"
 import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression } from "typescript"
 import { spawn } from "bun"
 
-
 // Spawn neovim process 
 const NVIM_HOST = "127.0.0.1"
-const NVIM_PORT = "7999"
-spawn(["nvim", "--headless", "--listen", NVIM_HOST, NVIM_PORT])
+const NVIM_PORT = "7666"
+// spawn(["nvim", "--headless", "--listen", NVIM_HOST, NVIM_PORT])
 
 // Connect to neovim process and make single RPC call to nvim_get_api_info
-const rpcConn = new RPCMessagePackConnection('127.0.0.1', Number.parseInt(NVIM_PORT))
+const rpcConn = new RPCMessagePackConnection(NVIM_HOST, Number.parseInt(NVIM_PORT))
 const nvimApiInfo = (await rpcConn.RPC({
   type: 0,
   msgid: 0,
@@ -20,6 +19,7 @@ const nvimApiInfo = (await rpcConn.RPC({
 }))?.result[1]
 
 const apiInfo = nvimApiInfo as NVIM_API_INFO
+logObject(apiInfo)
 const functions = apiInfo.functions
 
 function typeNodeFromNvimPrimitiveType(nvimBasicType: NVIM_PRIMITIVE): ts.KeywordTypeNode {
@@ -122,6 +122,7 @@ function typeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
 const RPCImportIdentifier = factory.createIdentifier("RPC")
 const RPCIdentifier = factory.createIdentifier("rpc")
 const RPCMethodIdentifier = factory.createIdentifier("RPC")
+const msgidIdentifier = factory.createIdentifier("msgid")
 const importDecl = factory.createImportDeclaration(
   undefined,
   factory.createImportClause(
@@ -162,7 +163,6 @@ function promise(ofType: TypeNode): ts.TypeReferenceNode {
 }
 
 const classMethods = functions.map((func) => {
-  console.log(`Creating class method for ${func.name}`)
   return factory.createMethodDeclaration(
     [factory.createModifier(SyntaxKind.AsyncKeyword)],
     undefined,
@@ -196,7 +196,13 @@ const classMethods = functions.map((func) => {
                       factory.createNumericLiteral(0),
                     ),
                     factory.createPropertyAssignment("msgid",
-                      factory.createNumericLiteral(0),
+                      factory.createPostfixUnaryExpression(
+                        chainedPropertyAccess(
+                          factory.createThis(),
+                          [msgidIdentifier],
+                        ),
+                        ts.SyntaxKind.PlusPlusToken,
+                      )
                     ),
                     factory.createPropertyAssignment("method",
                       factory.createStringLiteral(func.name),
@@ -241,6 +247,16 @@ const classDeclaration = factory.createClassDeclaration(
         undefined,
         factory.createTypeReferenceNode(RPCImportIdentifier), // Reference something else in the program, can be an identifier
         undefined
+      ),
+      factory.createParameterDeclaration(
+        [
+          factory.createModifier(SyntaxKind.PrivateKeyword)
+        ],
+        undefined,
+        msgidIdentifier,
+        undefined,
+        undefined,
+        factory.createNumericLiteral(0)
       )
     ], factory.createBlock([], false)),
     classMethods

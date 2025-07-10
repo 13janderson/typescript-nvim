@@ -1,10 +1,10 @@
-
 const nvimPrimitiveTypes = ["Boolean", "Integer", "Float", "String", "Dict", "Object", "Buffer", "Tabpage", "Window"] as const
 export type NVIM_PRIMITIVE = (typeof nvimPrimitiveTypes[number]) 
 export function isNvimPrimitive(value: any): value is NVIM_PRIMITIVE {
   return typeof value === "string" && nvimPrimitiveTypes.includes(value as any)
 }
 export type NVIM_ARRAY = `Array` | `Array(${NVIM_PRIMITIVE})` | `ArrayOf(${NVIM_PRIMITIVE})` ;
+export type NVIM_ALL = NVIM_PRIMITIVE | NVIM_ARRAY
 export type NVIM_RETURN = NVIM_PRIMITIVE | NVIM_ARRAY | "void"
 export type NVIM_API_INFO = {
   version: {
