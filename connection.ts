@@ -69,4 +69,8 @@ export class RPCMessagePackConnection{
       this.rpcPending.set(req.msgid, resolve)
     })
   }
+
+  Close(){
+    this.socket.destroy()
+  }
 }
