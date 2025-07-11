@@ -67,7 +67,7 @@ function typeNodeFromNvimPrimitive(nvimPrimitive: NVIM_PRIMITIVE): ts.KeywordTyp
   }
 }
 
-function typeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.KeywordTypeNode {
+function typeNodeFromNvimSpecial(_: NVIM_SPECIAL): ts.KeywordTypeNode {
   return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
 }
 
@@ -136,6 +136,9 @@ function typeNodeFromNvimType(nvimType: NVIM_ALL): ts.TypeNode {
       break
     case "ArrayOf(Window)":
       typeNode = factory.createTypeReferenceNode(NVIMWindowExtReturnImportIdentifier)
+      break
+    case "ArrayOf(Integer, 2)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
       break
     default:
       console.error(`Unexpected type ${nvimType}`)
@@ -227,6 +230,9 @@ function returnTypeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
       break
     case "void":
       return factory.createKeywordTypeNode(SyntaxKind.VoidKeyword)
+    case "ArrayOf(Integer, 2)":
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
+      break
     default:
       console.error(`Unexpected return type ${nvimType}`)
       return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
@@ -284,8 +290,9 @@ const classMethods = functions.map((func) => {
     func.name,
     undefined,
     undefined,
-    func.parameters.map((param) =>
-      factory.createParameterDeclaration(
+    func.parameters.map((param) => {
+      console.log(`param:${param}`)
+      return factory.createParameterDeclaration(
         undefined,
         undefined,
         param[1],
@@ -293,6 +300,7 @@ const classMethods = functions.map((func) => {
         typeNodeFromNvimType(param[0]),
         undefined
       )
+    }
     ),
     func?.return_type ? promise(returnTypeNodeFromNvimType(func.return_type)) : undefined,
     factory.createBlock([

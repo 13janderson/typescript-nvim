@@ -13,8 +13,10 @@ export function isNvimPrimitive(value: any): value is NVIM_PRIMITIVE {
 export function isNvimSpecial(value: any): value is NVIM_SPECIAL {
   return typeof value === "string" && nvimSpecialTypes.includes(value as any)
 }
-export type NVIM_ARRAY = `Array` | `Array(${NVIM_PRIMITIVE_SPECIAL})` | `ArrayOf(${NVIM_PRIMITIVE_SPECIAL})`;
-export type NVIM_ALL = NVIM_PRIMITIVE | NVIM_SPECIAL | NVIM_ARRAY
+
+type NVIM_ARRAY_OF<T extends NVIM_PRIMITIVE_SPECIAL = NVIM_PRIMITIVE_SPECIAL, S extends number | undefined = undefined> = S extends number ? `ArrayOf(${T}, ${S})` : `ArrayOf(${T})`
+export type NVIM_ARRAY_ALL = `Array` | `Array(${NVIM_PRIMITIVE_SPECIAL})` | NVIM_ARRAY_OF<NVIM_PRIMITIVE_SPECIAL> | NVIM_ARRAY_OF<"Integer",2>
+export type NVIM_ALL = NVIM_PRIMITIVE | NVIM_SPECIAL | NVIM_ARRAY_ALL
 
 type NVIM_EXT_RETURN<T> = {
   type: T,
