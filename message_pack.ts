@@ -35,7 +35,6 @@ export function decodeMessagePackResponse(res: Buffer | unknown): MessagePackRes
       }
       return decoded as MessagePackResponse
     }
-  } catch{
-  }
+  } catch{}
 }
 

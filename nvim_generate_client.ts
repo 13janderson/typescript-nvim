@@ -331,6 +331,7 @@ function classMethods(): ts.MethodDeclaration[] {
         undefined,
         undefined,
         paramDeclarations,
+        // TODO, handle not being able to derive this type
         func?.return_type ? promise(returnTypeNodeFromNvimType(func.return_type)) : undefined,
         factory.createBlock([
           factory.createReturnStatement(
