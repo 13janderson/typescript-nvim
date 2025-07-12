@@ -1,16 +1,15 @@
-import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN, type NVIM_ALL, logObject, type NVIM_PRIMITIVE_SPECIAL, isNvimPrimitive, isNvimSpecial, type NVIM_SPECIAL } from "./nvim_types"
+import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN_TYPES,  isNvimPrimitive, isNvimSpecial, type NVIM_SPECIAL, type NVIM_PARAM_TYPES } from "./nvim_types"
 import { RPCMessagePackConnection } from "./connection"
 import ts, { type TypeNode } from "typescript"
 import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression } from "typescript"
-import { spawn } from "bun"
 
-// Spawn neovim process 
 const NVIM_HOST = "127.0.0.1"
 const NVIM_PORT = "7666"
-// spawn(["nvim", "--headless", "--listen", NVIM_HOST, NVIM_PORT])
 
 // Connect to neovim process and make single RPC call to nvim_get_api_info
 const rpcConn = new RPCMessagePackConnection(NVIM_HOST, Number.parseInt(NVIM_PORT))
+
+// Use rpcConn to call nvim_get_api_info by RPC
 const nvimApiInfo = (await rpcConn.RPC({
   type: 0,
   msgid: 0,
@@ -19,7 +18,6 @@ const nvimApiInfo = (await rpcConn.RPC({
 }))?.result[1]
 
 const apiInfo = nvimApiInfo as NVIM_API_INFO
-logObject(apiInfo.types)
 const functions = apiInfo.functions
 
 // Resolves to expr.[...identifiers]
@@ -39,14 +37,17 @@ function chainedPropertyAccess(expr: Expression, identifiers: (string | ts.Membe
   )
 }
 
+// Allows us to type things as promises
+const promiseIdentifier = factory.createIdentifier("Promise")
 function promise(ofType: TypeNode): ts.TypeReferenceNode {
   return factory.createTypeReferenceNode(
-    factory.createIdentifier("Promise"),
+    promiseIdentifier,
     [ofType]
   )
 }
 
 
+// Map NVIM_PRIMITIVE types to Keyword TypeNodes
 function typeNodeFromNvimPrimitive(nvimPrimitive: NVIM_PRIMITIVE): ts.KeywordTypeNode {
   switch (nvimPrimitive) {
     case "Boolean":
@@ -67,19 +68,22 @@ function typeNodeFromNvimPrimitive(nvimPrimitive: NVIM_PRIMITIVE): ts.KeywordTyp
   }
 }
 
+// Map all NVIM_SPECIAL types to KeywordTypeNodes of NumberKeyword
 function typeNodeFromNvimSpecial(_: NVIM_SPECIAL): ts.KeywordTypeNode {
   return factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
 }
 
-function typeNodeFromNvimType(nvimType: NVIM_ALL): ts.TypeNode {
-  if (isNvimPrimitive(nvimType)) {
-    return typeNodeFromNvimPrimitive(nvimType)
-  } else if (isNvimSpecial(nvimType)) {
-    return typeNodeFromNvimSpecial(nvimType)
+// Delegate to typeNodeFromNvimPrimitive and typeNodeFromNvimSpecial and then handle logic for
+// remaining cases.
+function typeNodeFromNvimType(nvimParamType: NVIM_PARAM_TYPES): ts.TypeNode | undefined {
+  if (isNvimPrimitive(nvimParamType)) {
+    return typeNodeFromNvimPrimitive(nvimParamType)
+  } else if (isNvimSpecial(nvimParamType)) {
+    return typeNodeFromNvimSpecial(nvimParamType)
   }
 
   var typeNode: TypeNode
-  switch (nvimType) {
+  switch (nvimParamType) {
     case "Array":
       typeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
       break
@@ -140,15 +144,18 @@ function typeNodeFromNvimType(nvimType: NVIM_ALL): ts.TypeNode {
     case "ArrayOf(Integer, 2)":
       typeNode = factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
       break
+    case "LuaRef":
+      console.error(`LuaRef's cannot cross the RPC boundary and thus we cannot map this param type.`)
+      return
     default:
-      console.error(`Unexpected type ${nvimType}`)
-      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+      return
   }
   return factory.createArrayTypeNode(typeNode)
 
 }
 
 
+// Map NVIM_SPECIAL types to their relevant special return types, typed from nvim docs.
 function returnTypeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.TypeReferenceType {
   switch (nvimSpecial) {
     case "Buffer":
@@ -160,7 +167,9 @@ function returnTypeNodeFromNvimSpecial(nvimSpecial: NVIM_SPECIAL): ts.TypeRefere
   }
 }
 
-function returnTypeNodeFromNvimType(nvimType: NVIM_RETURN): ts.TypeNode {
+// Delegate to returnTypeNodeFromNvimSpecial and typeNodeFromNvimSpecial and then handle logic for
+// NVIM_ARRAY_ALL types to map to TypeNodes from any NVIM type.
+function returnTypeNodeFromNvimType(nvimType: NVIM_RETURN_TYPES): ts.TypeNode {
   if (isNvimPrimitive(nvimType)) {
     return typeNodeFromNvimPrimitive(nvimType)
   }
@@ -265,6 +274,7 @@ const rpcImportDecl = factory.createImportDeclaration(
   factory.createStringLiteral("./connection"),
 );
 
+// Import Neovim special return types 
 const nvimTypesImportDecl = factory.createImportDeclaration(
   undefined,
   factory.createImportClause(
@@ -282,76 +292,98 @@ const nvimTypesImportDecl = factory.createImportDeclaration(
 );
 
 
-// Create async class methods which call our to rpc client
-const classMethods = functions.map((func) => {
-  return factory.createMethodDeclaration(
-    [factory.createModifier(SyntaxKind.AsyncKeyword)],
-    undefined,
-    func.name,
-    undefined,
-    undefined,
-    func.parameters.map((param) => {
-      console.log(`param:${param}`)
-      return factory.createParameterDeclaration(
-        undefined,
-        undefined,
-        param[1],
-        undefined,
-        typeNodeFromNvimType(param[0]),
-        undefined
-      )
-    }
-    ),
-    func?.return_type ? promise(returnTypeNodeFromNvimType(func.return_type)) : undefined,
-    factory.createBlock([
-      factory.createReturnStatement(
-        chainedPropertyAccess(
-          factory.createAwaitExpression(
-            factory.createCallExpression(
-              chainedPropertyAccess(
-                factory.createThis(), [RPCIdentifier, RPCMethodIdentifier]
-              ),
-              undefined,
-              [
-                factory.createObjectLiteralExpression(
-                  [
-                    factory.createPropertyAssignment("type",
-                      factory.createNumericLiteral(0),
-                    ),
-                    factory.createPropertyAssignment("msgid",
-                      factory.createPostfixUnaryExpression(
-                        chainedPropertyAccess(
-                          factory.createThis(),
-                          [msgidIdentifier],
-                        ),
-                        ts.SyntaxKind.PlusPlusToken,
-                      )
-                    ),
-                    factory.createPropertyAssignment("method",
-                      factory.createStringLiteral(func.name),
-                    ),
-                    factory.createPropertyAssignment("params",
-                      factory.createArrayLiteralExpression(
-                        func.parameters.map((param) => {
-                          return factory.createIdentifier(param[1])
-                        }),
-                        false
-                      )
+function classMethods(): ts.MethodDeclaration[] {
+  // We want to not include any methods where we fail to derive the type of any parameters or the return type of the function
+  const methodDeclarations: ts.MethodDeclaration[] = []
+  for (const func of functions) {
+    // Create async class methods which call our to rpc client
+    // const classMethods = functions.map((func) => {
+    const paramDeclarations: ts.ParameterDeclaration[] = []
 
-                    ),
+    let paramTypesDervied = true
+    for (const param of func.parameters) {
+      const paramTypeNode = typeNodeFromNvimType(param[0])
+      if (paramTypeNode) {
+        paramDeclarations.push(
+          factory.createParameterDeclaration(
+            undefined,
+            undefined,
+            param[1],
+            undefined,
+            paramTypeNode
+          ))
+      }else{
+        paramTypesDervied = false
+      }
+    }
+
+    if (!paramTypesDervied){
+      // Skip over this function completely
+      console.error(`Skipping over ${func.name} because we failed to derive all of its parameter types.`)
+      continue
+    }
+
+    methodDeclarations.push(
+      factory.createMethodDeclaration(
+        [factory.createModifier(SyntaxKind.AsyncKeyword)],
+        undefined,
+        func.name,
+        undefined,
+        undefined,
+        paramDeclarations,
+        func?.return_type ? promise(returnTypeNodeFromNvimType(func.return_type)) : undefined,
+        factory.createBlock([
+          factory.createReturnStatement(
+            chainedPropertyAccess(
+              factory.createAwaitExpression(
+                factory.createCallExpression(
+                  chainedPropertyAccess(
+                    factory.createThis(), [RPCIdentifier, RPCMethodIdentifier]
+                  ),
+                  undefined,
+                  [
+                    factory.createObjectLiteralExpression(
+                      [
+                        factory.createPropertyAssignment("type",
+                          factory.createNumericLiteral(0),
+                        ),
+                        factory.createPropertyAssignment("msgid",
+                          factory.createPostfixUnaryExpression(
+                            chainedPropertyAccess(
+                              factory.createThis(),
+                              [msgidIdentifier],
+                            ),
+                            ts.SyntaxKind.PlusPlusToken,
+                          )
+                        ),
+                        factory.createPropertyAssignment("method",
+                          factory.createStringLiteral(func.name),
+                        ),
+                        factory.createPropertyAssignment("params",
+                          factory.createArrayLiteralExpression(
+                            func.parameters.map((param) => {
+                              return factory.createIdentifier(param[1])
+                            }),
+                            false
+                          )
+
+                        ),
+                      ]
+                    )
                   ]
                 )
-              ]
+              ),
+              ["result"],
+              true
             )
           ),
-          ["result"],
-          true
-        )
-      ),
-    ], true),
-  )
+        ], true),
+      )
+    )
+  }
+  return methodDeclarations
 }
-)
+
 
 const className = `NvimClient`
 const classDeclaration = factory.createClassDeclaration(
@@ -382,7 +414,7 @@ const classDeclaration = factory.createClassDeclaration(
         factory.createNumericLiteral(0)
       )
     ], factory.createBlock([], false)),
-    classMethods
+    classMethods(),
   ].flat(),
 );
 
@@ -402,3 +434,4 @@ await Bun.write(
   ]
 );
 
+rpcConn.Close()

@@ -1,4 +1,3 @@
-import { log } from "console"
 import type { MessagePackRequest, MessagePackResponse } from "./message_pack"
 import { encodeMessagePackRequest, decodeMessagePackResponse } from "./message_pack"
 import { logObject } from "./nvim_types"
@@ -41,7 +40,6 @@ export class RPCMessagePackConnection{
         // and if theres anything else on the queue, begin executing it.
         const rpcQueueHead = this.rpcQueue.pop()
         if (rpcQueueHead){
-          console.log('Dequeuing operation from queue')
           this.socket.write(encodeMessagePackRequest(rpcQueueHead))
         }
       }
@@ -54,7 +52,6 @@ export class RPCMessagePackConnection{
   }
 
   RPC(req: MessagePackRequest): Promise<MessagePackResponse | undefined> {
-    logObject(req)
     return new Promise((resolve) => {
       if (this.rpcPending.size == 0)  {
         // No current RPC calls are awaiting data and so we can safely perform this call
