@@ -1,5 +1,5 @@
-import { RPCMessagePackConnection } from "./connection"
-import { NvimClient } from "./Nvim_TypeScript_0.12"
+import { RPCMessagePackConnection } from "@src/rpc"
+import { NvimClient } from "@clients/Nvim_TypeScript_0.12"
 
 const rpcConn = new RPCMessagePackConnection('127.0.0.1', 7666)
 const client = new NvimClient(rpcConn)
