@@ -15,7 +15,7 @@ export function isNvimSpecial(value: any): value is NVIM_SPECIAL {
 }
 
 type NVIM_ARRAY_OF<T extends NVIM_PRIMITIVE_SPECIAL = NVIM_PRIMITIVE_SPECIAL, S extends number | undefined = undefined> = S extends number ? `ArrayOf(${T}, ${S})` : `ArrayOf(${T})`
-export type NVIM_ARRAY_ALL = `Array` | `Array(${NVIM_PRIMITIVE_SPECIAL})` | NVIM_ARRAY_OF<NVIM_PRIMITIVE_SPECIAL> | NVIM_ARRAY_OF<"Integer",2>
+export type NVIM_ARRAY_ALL = `Array` | `Array(${NVIM_PRIMITIVE_SPECIAL})` | NVIM_ARRAY_OF<NVIM_PRIMITIVE_SPECIAL> | NVIM_ARRAY_OF<"Integer", 2>
 export type NVIM_ALL = NVIM_PRIMITIVE | NVIM_SPECIAL | NVIM_ARRAY_ALL
 export type NVIM_PARAM_TYPES = NVIM_ALL | "LuaRef"
 
@@ -27,7 +27,7 @@ export type NVIM_BUFFER_EXT_RETURN = NVIM_EXT_RETURN<0>
 export type NVIM_WINDOW_EXT_RETURN = NVIM_EXT_RETURN<1>
 export type NVIM_TABPAGE_EXT_RETURN = NVIM_EXT_RETURN<2>
 
-export type NVIM_RETURN_TYPES = NVIM_ALL | "void" 
+export type NVIM_RETURN_TYPES = NVIM_ALL | "void"
 export type NVIM_API_INFO = {
   version: {
     major: number,
@@ -54,16 +54,3 @@ export type NVIM_API_INFO = {
     }
   }
 }
-
-
-// Debugging function to recursively print an object and all of its nested properties
-export function logObject(obj: object, call_count: number = 0) {
-  Object.entries(obj).forEach(([key, value]) => {
-    console.log(`${"\t".repeat(call_count)}${key}:${value}`)
-    if (value && typeof value === "object") {
-      logObject(value, call_count + 1)
-    }
-  })
-}
-
-

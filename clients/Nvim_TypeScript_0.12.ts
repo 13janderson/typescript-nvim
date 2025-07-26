@@ -1,5 +1,5 @@
-import { RPCMessagePackConnection as RPC } from "./rpc";
-import { type NVIM_BUFFER_EXT_RETURN, type NVIM_WINDOW_EXT_RETURN, type NVIM_TABPAGE_EXT_RETURN } from "./nvim_types";
+import { RPCMessagePackConnection as RPC } from "@src/rpc";
+import { type NVIM_BUFFER_EXT_RETURN, type NVIM_WINDOW_EXT_RETURN, type NVIM_TABPAGE_EXT_RETURN } from "@src/nvim_types";
 export class NvimClient {
     constructor(private rpc: RPC, private msgid = 0) { }
     async nvim_get_autocmds(opts: object): Promise<any[]> {
