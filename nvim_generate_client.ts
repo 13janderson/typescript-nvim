@@ -1,5 +1,5 @@
-import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN_TYPES,  isNvimPrimitive, isNvimSpecial, type NVIM_SPECIAL, type NVIM_PARAM_TYPES } from "./nvim_types"
-import { RPCMessagePackConnection } from "./connection"
+import { type NVIM_API_INFO, type NVIM_PRIMITIVE, type NVIM_RETURN_TYPES, isNvimPrimitive, isNvimSpecial, type NVIM_SPECIAL, type NVIM_PARAM_TYPES, logObject } from "./nvim_types"
+import { RPCMessagePackConnection } from "./rpc"
 import ts, { type TypeNode } from "typescript"
 import { factory, createPrinter, createSourceFile, SyntaxKind, type Expression } from "typescript"
 
@@ -39,10 +39,10 @@ function chainedPropertyAccess(expr: Expression, identifiers: (string | ts.Membe
 
 // Allows us to type things as promises
 const promiseIdentifier = factory.createIdentifier("Promise")
-function promise(ofType: TypeNode): ts.TypeReferenceNode {
+function promise(type: TypeNode): ts.TypeReferenceNode {
   return factory.createTypeReferenceNode(
     promiseIdentifier,
-    [ofType]
+    [type]
   )
 }
 
@@ -271,7 +271,7 @@ const rpcImportDecl = factory.createImportDeclaration(
       ]
     )
   ),
-  factory.createStringLiteral("./connection"),
+  factory.createStringLiteral("./rpc"),
 );
 
 // Import Neovim special return types 
@@ -312,12 +312,12 @@ function classMethods(): ts.MethodDeclaration[] {
             undefined,
             paramTypeNode
           ))
-      }else{
+      } else {
         paramTypesDervied = false
       }
     }
 
-    if (!paramTypesDervied){
+    if (!paramTypesDervied) {
       // Skip over this function completely
       console.error(`Skipping over ${func.name} because we failed to derive all of its parameter types.`)
       continue
@@ -375,7 +375,7 @@ function classMethods(): ts.MethodDeclaration[] {
                 )
               ),
               ["result"],
-              true
+              false
             )
           ),
         ], true),

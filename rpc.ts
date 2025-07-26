@@ -49,12 +49,17 @@ export class RPCMessagePackConnection {
       }
       const decodedBuffer = decodeMessagePackResponse(this.rpcDataBuffer)
       if (decodedBuffer) {
+        const error = decodedBuffer.error
+        if (error) {
+          throw new RPCError(error)
+        }
+
         const msgid = decodedBuffer.msgid
         this.rpcDataBuffer = undefined
         const expectedMsgId = this.rpcPending.msgpack.msgid
         if (expectedMsgId == msgid) {
           this.rpcPending.resolve(decodedBuffer)
-        }else{
+        } else {
           this.Close() // I think we close at this point, you are kind of fucked in this case
           throw new RPCError(`Received data chunk for another RPC request whose msgid (${msgid}) does not match the previous request's msgid (${expectedMsgId}).`)
         }
@@ -68,13 +73,14 @@ export class RPCMessagePackConnection {
     })
 
     this.socket.on('error', (err) => {
+      console.error(err)
       // Reject the promise with an RPCError
       this.rpcPending.reject(new RPCError("Failed to process RPC request", err))
     })
 
   }
 
-  RPC(req: MessagePackRequest): Promise<MessagePackResponse | undefined> {
+  RPC(req: MessagePackRequest): Promise<MessagePackResponse> {
     return new Promise((resolve, reject) => {
       if (this.rpcPending) {
         // No current RPC calls are awaiting data and so we can safely perform this call
