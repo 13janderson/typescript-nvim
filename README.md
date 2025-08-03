@@ -11,15 +11,6 @@ Return and parameter types are derived as per neovim's own documentation, see `h
 
 Errors from Neovim are propagated through client calls as RPCErrors, allowing you to handle these within your TypeScript code.
 
-
-# Installation
-
-To install dependencies:
-
-```bash
-bun install
-```
-
 # Motivation
 What is the point of this? If you can already communicate with a neovim instance via lua, then why would you need to do it in another lanauge via RPC.
 
