@@ -5,7 +5,7 @@ export class NvimClient {
     async nvim_get_autocmds(opts: object): Promise<any[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_autocmds", params: [opts] })).result;
     }
-    async nvim_create_autocmd(event: object, opts: object): Promise<number> {
+    async nvim_create_autocmd(event: any, opts: object): Promise<number> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_create_autocmd", params: [event, opts] })).result;
     }
     async nvim_del_autocmd(id: number): Promise<void> {
@@ -23,7 +23,7 @@ export class NvimClient {
     async nvim_del_augroup_by_name(name: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_del_augroup_by_name", params: [name] })).result;
     }
-    async nvim_exec_autocmds(event: object, opts: object): Promise<void> {
+    async nvim_exec_autocmds(event: any, opts: object): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_exec_autocmds", params: [event, opts] })).result;
     }
     async nvim_buf_line_count(buffer: number): Promise<number> {
@@ -50,7 +50,7 @@ export class NvimClient {
     async nvim_buf_get_offset(buffer: number, index: number): Promise<number> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_get_offset", params: [buffer, index] })).result;
     }
-    async nvim_buf_get_var(buffer: number, name: string): Promise<object> {
+    async nvim_buf_get_var(buffer: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_get_var", params: [buffer, name] })).result;
     }
     async nvim_buf_get_changedtick(buffer: number): Promise<number> {
@@ -65,7 +65,7 @@ export class NvimClient {
     async nvim_buf_del_keymap(buffer: number, mode: string, lhs: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_del_keymap", params: [buffer, mode, lhs] })).result;
     }
-    async nvim_buf_set_var(buffer: number, name: string, value: object): Promise<void> {
+    async nvim_buf_set_var(buffer: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_set_var", params: [buffer, name, value] })).result;
     }
     async nvim_buf_del_var(buffer: number, name: string): Promise<void> {
@@ -101,13 +101,13 @@ export class NvimClient {
     async nvim_cmd(cmd: object, opts: object): Promise<string> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_cmd", params: [cmd, opts] })).result;
     }
-    async nvim_create_user_command(name: string, command: object, opts: object): Promise<void> {
+    async nvim_create_user_command(name: string, command: any, opts: object): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_create_user_command", params: [name, command, opts] })).result;
     }
     async nvim_del_user_command(name: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_del_user_command", params: [name] })).result;
     }
-    async nvim_buf_create_user_command(buffer: number, name: string, command: object, opts: object): Promise<void> {
+    async nvim_buf_create_user_command(buffer: number, name: string, command: any, opts: object): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_create_user_command", params: [buffer, name, command, opts] })).result;
     }
     async nvim_buf_del_user_command(buffer: number, name: string): Promise<void> {
@@ -125,7 +125,7 @@ export class NvimClient {
     async nvim_command_output(command: string): Promise<string> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_command_output", params: [command] })).result;
     }
-    async nvim_execute_lua(code: string, args: any[]): Promise<object> {
+    async nvim_execute_lua(code: string, args: any[]): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_execute_lua", params: [code, args] })).result;
     }
     async nvim_buf_get_number(buffer: number): Promise<number> {
@@ -164,49 +164,49 @@ export class NvimClient {
     async buffer_set_line_slice(buffer: number, start: number, end: number, include_start: boolean, include_end: boolean, replacement: string[]): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_set_line_slice", params: [buffer, start, end, include_start, include_end, replacement] })).result;
     }
-    async buffer_set_var(buffer: number, name: string, value: object): Promise<object> {
+    async buffer_set_var(buffer: number, name: string, value: any): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_set_var", params: [buffer, name, value] })).result;
     }
-    async buffer_del_var(buffer: number, name: string): Promise<object> {
+    async buffer_del_var(buffer: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_del_var", params: [buffer, name] })).result;
     }
-    async window_set_var(window: number, name: string, value: object): Promise<object> {
+    async window_set_var(window: number, name: string, value: any): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_set_var", params: [window, name, value] })).result;
     }
-    async window_del_var(window: number, name: string): Promise<object> {
+    async window_del_var(window: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_del_var", params: [window, name] })).result;
     }
-    async tabpage_set_var(tabpage: number, name: string, value: object): Promise<object> {
+    async tabpage_set_var(tabpage: number, name: string, value: any): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "tabpage_set_var", params: [tabpage, name, value] })).result;
     }
-    async tabpage_del_var(tabpage: number, name: string): Promise<object> {
+    async tabpage_del_var(tabpage: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "tabpage_del_var", params: [tabpage, name] })).result;
     }
-    async vim_set_var(name: string, value: object): Promise<object> {
+    async vim_set_var(name: string, value: any): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_set_var", params: [name, value] })).result;
     }
-    async vim_del_var(name: string): Promise<object> {
+    async vim_del_var(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_del_var", params: [name] })).result;
     }
     async nvim_get_option_info(name: string): Promise<object> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_option_info", params: [name] })).result;
     }
-    async nvim_set_option(name: string, value: object): Promise<void> {
+    async nvim_set_option(name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_set_option", params: [name, value] })).result;
     }
-    async nvim_get_option(name: string): Promise<object> {
+    async nvim_get_option(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_option", params: [name] })).result;
     }
-    async nvim_buf_get_option(buffer: number, name: string): Promise<object> {
+    async nvim_buf_get_option(buffer: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_get_option", params: [buffer, name] })).result;
     }
-    async nvim_buf_set_option(buffer: number, name: string, value: object): Promise<void> {
+    async nvim_buf_set_option(buffer: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_set_option", params: [buffer, name, value] })).result;
     }
-    async nvim_win_get_option(window: number, name: string): Promise<object> {
+    async nvim_win_get_option(window: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_win_get_option", params: [window, name] })).result;
     }
-    async nvim_win_set_option(window: number, name: string, value: object): Promise<void> {
+    async nvim_win_set_option(window: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_win_set_option", params: [window, name, value] })).result;
     }
     async nvim_call_atomic(calls: any[]): Promise<any[]> {
@@ -227,7 +227,7 @@ export class NvimClient {
     async nvim_err_writeln(str: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_err_writeln", params: [str] })).result;
     }
-    async nvim_notify(msg: string, log_level: number, opts: object): Promise<object> {
+    async nvim_notify(msg: string, log_level: number, opts: object): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_notify", params: [msg, log_level, opts] })).result;
     }
     async nvim_create_namespace(name: string): Promise<number> {
@@ -239,7 +239,7 @@ export class NvimClient {
     async nvim_buf_get_extmark_by_id(buffer: number, ns_id: number, id: number, opts: object): Promise<number[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_get_extmark_by_id", params: [buffer, ns_id, id, opts] })).result;
     }
-    async nvim_buf_get_extmarks(buffer: number, ns_id: number, start: object, end: object, opts: object): Promise<any[]> {
+    async nvim_buf_get_extmarks(buffer: number, ns_id: number, start: any, end: any, opts: object): Promise<any[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_buf_get_extmarks", params: [buffer, ns_id, start, end, opts] })).result;
     }
     async nvim_buf_set_extmark(buffer: number, ns_id: number, line: number, col: number, opts: object): Promise<number> {
@@ -254,10 +254,10 @@ export class NvimClient {
     async nvim_set_decoration_provider(ns_id: number, opts: object): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_set_decoration_provider", params: [ns_id, opts] })).result;
     }
-    async nvim_get_option_value(name: string, opts: object): Promise<object> {
+    async nvim_get_option_value(name: string, opts: object): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_option_value", params: [name, opts] })).result;
     }
-    async nvim_set_option_value(name: string, value: object, opts: object): Promise<void> {
+    async nvim_set_option_value(name: string, value: any, opts: object): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_set_option_value", params: [name, value, opts] })).result;
     }
     async nvim_get_all_options_info(): Promise<object> {
@@ -269,10 +269,10 @@ export class NvimClient {
     async nvim_tabpage_list_wins(tabpage: number): Promise<NVIM_WINDOW_EXT_RETURN[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_tabpage_list_wins", params: [tabpage] })).result;
     }
-    async nvim_tabpage_get_var(tabpage: number, name: string): Promise<object> {
+    async nvim_tabpage_get_var(tabpage: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_tabpage_get_var", params: [tabpage, name] })).result;
     }
-    async nvim_tabpage_set_var(tabpage: number, name: string, value: object): Promise<void> {
+    async nvim_tabpage_set_var(tabpage: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_tabpage_set_var", params: [tabpage, name, value] })).result;
     }
     async nvim_tabpage_del_var(tabpage: number, name: string): Promise<void> {
@@ -305,7 +305,7 @@ export class NvimClient {
     async nvim_ui_try_resize(width: number, height: number): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_ui_try_resize", params: [width, height] })).result;
     }
-    async nvim_ui_set_option(name: string, value: object): Promise<void> {
+    async nvim_ui_set_option(name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_ui_set_option", params: [name, value] })).result;
     }
     async nvim_ui_try_resize_grid(grid: number, width: number, height: number): Promise<void> {
@@ -317,7 +317,7 @@ export class NvimClient {
     async nvim_ui_pum_set_bounds(width: number, height: number, row: number, col: number): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_ui_pum_set_bounds", params: [width, height, row, col] })).result;
     }
-    async nvim_ui_term_event(event: string, value: object): Promise<void> {
+    async nvim_ui_term_event(event: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_ui_term_event", params: [event, value] })).result;
     }
     async nvim_get_hl_id_by_name(name: string): Promise<number> {
@@ -350,7 +350,7 @@ export class NvimClient {
     async nvim_replace_termcodes(str: string, from_part: boolean, do_lt: boolean, special: boolean): Promise<string> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_replace_termcodes", params: [str, from_part, do_lt, special] })).result;
     }
-    async nvim_exec_lua(code: string, args: any[]): Promise<object> {
+    async nvim_exec_lua(code: string, args: any[]): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_exec_lua", params: [code, args] })).result;
     }
     async nvim_strwidth(text: string): Promise<number> {
@@ -374,19 +374,19 @@ export class NvimClient {
     async nvim_del_current_line(): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_del_current_line", params: [] })).result;
     }
-    async nvim_get_var(name: string): Promise<object> {
+    async nvim_get_var(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_var", params: [name] })).result;
     }
-    async nvim_set_var(name: string, value: object): Promise<void> {
+    async nvim_set_var(name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_set_var", params: [name, value] })).result;
     }
     async nvim_del_var(name: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_del_var", params: [name] })).result;
     }
-    async nvim_get_vvar(name: string): Promise<object> {
+    async nvim_get_vvar(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_vvar", params: [name] })).result;
     }
-    async nvim_set_vvar(name: string, value: object): Promise<void> {
+    async nvim_set_vvar(name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_set_vvar", params: [name, value] })).result;
     }
     async nvim_echo(chunks: any[], history: boolean, opts: object): Promise<void> {
@@ -443,7 +443,7 @@ export class NvimClient {
     async nvim_get_context(opts: object): Promise<object> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_context", params: [opts] })).result;
     }
-    async nvim_load_context(dict: object): Promise<object> {
+    async nvim_load_context(dict: object): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_load_context", params: [dict] })).result;
     }
     async nvim_get_mode(): Promise<object> {
@@ -476,7 +476,7 @@ export class NvimClient {
     async nvim_get_proc_children(pid: number): Promise<any[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_proc_children", params: [pid] })).result;
     }
-    async nvim_get_proc(pid: number): Promise<object> {
+    async nvim_get_proc(pid: number): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_get_proc", params: [pid] })).result;
     }
     async nvim_select_popupmenu_item(item: number, insert: boolean, finish: boolean, opts: object): Promise<void> {
@@ -497,13 +497,13 @@ export class NvimClient {
     async nvim_command(command: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_command", params: [command] })).result;
     }
-    async nvim_eval(expr: string): Promise<object> {
+    async nvim_eval(expr: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_eval", params: [expr] })).result;
     }
-    async nvim_call_function(fn: string, args: any[]): Promise<object> {
+    async nvim_call_function(fn: string, args: any[]): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_call_function", params: [fn, args] })).result;
     }
-    async nvim_call_dict_function(dict: object, fn: string, args: any[]): Promise<object> {
+    async nvim_call_dict_function(dict: any, fn: string, args: any[]): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_call_dict_function", params: [dict, fn, args] })).result;
     }
     async nvim_parse_expression(expr: string, flags: string, highlight: boolean): Promise<object> {
@@ -542,10 +542,10 @@ export class NvimClient {
     async nvim_win_set_width(window: number, width: number): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_win_set_width", params: [window, width] })).result;
     }
-    async nvim_win_get_var(window: number, name: string): Promise<object> {
+    async nvim_win_get_var(window: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_win_get_var", params: [window, name] })).result;
     }
-    async nvim_win_set_var(window: number, name: string, value: object): Promise<void> {
+    async nvim_win_set_var(window: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "nvim_win_set_var", params: [window, name, value] })).result;
     }
     async nvim_win_del_var(window: number, name: string): Promise<void> {
@@ -584,7 +584,7 @@ export class NvimClient {
     async buffer_set_lines(buffer: number, start: number, end: number, strict_indexing: boolean, replacement: string[]): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_set_lines", params: [buffer, start, end, strict_indexing, replacement] })).result;
     }
-    async buffer_get_var(buffer: number, name: string): Promise<object> {
+    async buffer_get_var(buffer: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_get_var", params: [buffer, name] })).result;
     }
     async buffer_get_name(buffer: number): Promise<string> {
@@ -611,22 +611,22 @@ export class NvimClient {
     async buffer_add_highlight(buffer: number, ns_id: number, hl_group: string, line: number, col_start: number, col_end: number): Promise<number> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_add_highlight", params: [buffer, ns_id, hl_group, line, col_start, col_end] })).result;
     }
-    async vim_set_option(name: string, value: object): Promise<void> {
+    async vim_set_option(name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_set_option", params: [name, value] })).result;
     }
-    async vim_get_option(name: string): Promise<object> {
+    async vim_get_option(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_get_option", params: [name] })).result;
     }
-    async buffer_get_option(buffer: number, name: string): Promise<object> {
+    async buffer_get_option(buffer: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_get_option", params: [buffer, name] })).result;
     }
-    async buffer_set_option(buffer: number, name: string, value: object): Promise<void> {
+    async buffer_set_option(buffer: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "buffer_set_option", params: [buffer, name, value] })).result;
     }
-    async window_get_option(window: number, name: string): Promise<object> {
+    async window_get_option(window: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_get_option", params: [window, name] })).result;
     }
-    async window_set_option(window: number, name: string, value: object): Promise<void> {
+    async window_set_option(window: number, name: string, value: any): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_set_option", params: [window, name, value] })).result;
     }
     async vim_subscribe(event: string): Promise<void> {
@@ -647,7 +647,7 @@ export class NvimClient {
     async tabpage_get_windows(tabpage: number): Promise<NVIM_WINDOW_EXT_RETURN[]> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "tabpage_get_windows", params: [tabpage] })).result;
     }
-    async tabpage_get_var(tabpage: number, name: string): Promise<object> {
+    async tabpage_get_var(tabpage: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "tabpage_get_var", params: [tabpage, name] })).result;
     }
     async tabpage_get_window(tabpage: number): Promise<NVIM_WINDOW_EXT_RETURN> {
@@ -659,7 +659,7 @@ export class NvimClient {
     async ui_detach(): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "ui_detach", params: [] })).result;
     }
-    async ui_try_resize(width: number, height: number): Promise<object> {
+    async ui_try_resize(width: number, height: number): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "ui_try_resize", params: [width, height] })).result;
     }
     async vim_feedkeys(keys: string, mode: string, escape_ks: boolean): Promise<void> {
@@ -689,10 +689,10 @@ export class NvimClient {
     async vim_del_current_line(): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_del_current_line", params: [] })).result;
     }
-    async vim_get_var(name: string): Promise<object> {
+    async vim_get_var(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_get_var", params: [name] })).result;
     }
-    async vim_get_vvar(name: string): Promise<object> {
+    async vim_get_vvar(name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_get_vvar", params: [name] })).result;
     }
     async vim_get_buffers(): Promise<NVIM_BUFFER_EXT_RETURN[]> {
@@ -734,10 +734,10 @@ export class NvimClient {
     async vim_command(command: string): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_command", params: [command] })).result;
     }
-    async vim_eval(expr: string): Promise<object> {
+    async vim_eval(expr: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_eval", params: [expr] })).result;
     }
-    async vim_call_function(fn: string, args: any[]): Promise<object> {
+    async vim_call_function(fn: string, args: any[]): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "vim_call_function", params: [fn, args] })).result;
     }
     async window_get_buffer(window: number): Promise<NVIM_BUFFER_EXT_RETURN> {
@@ -761,7 +761,7 @@ export class NvimClient {
     async window_set_width(window: number, width: number): Promise<void> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_set_width", params: [window, width] })).result;
     }
-    async window_get_var(window: number, name: string): Promise<object> {
+    async window_get_var(window: number, name: string): Promise<any> {
         return (await (this.rpc.RPC)({ type: 0, msgid: this.msgid++, method: "window_get_var", params: [window, name] })).result;
     }
     async window_get_position(window: number): Promise<number[]> {

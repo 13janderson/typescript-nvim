@@ -21,7 +21,7 @@ export type NVIM_PARAM_TYPES = NVIM_ALL | "LuaRef"
 
 type NVIM_EXT_RETURN<T> = {
   type: T,
-  data: number[]
+  data: number
 }
 export type NVIM_BUFFER_EXT_RETURN = NVIM_EXT_RETURN<0>
 export type NVIM_WINDOW_EXT_RETURN = NVIM_EXT_RETURN<1>

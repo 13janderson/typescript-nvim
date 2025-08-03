@@ -7,7 +7,7 @@ const client = new NvimClient(rpcConn)
 const bufnr = (await client.nvim_create_buf(true, false)).data[0]
 if (bufnr) {
   await client.nvim_set_current_buf(bufnr)
-  await client.nvim_buf_set_lines(bufnr!, 0, -1, false, [
+  await client.nvim_buf_set_lines(bufnr, 0, -1, false, [
     "Hello",
     "From",
     bufnr!.toString()

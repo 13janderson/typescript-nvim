@@ -44,7 +44,7 @@ export function typeNodeFromNvimPrimitive(nvimPrimitive: NVIM_PRIMITIVE): ts.Key
     case "Dict":
       return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
     case "Object":
-      return factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
     default:
       console.error(`Unexpected type ${nvimPrimitive}`)
       return factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
@@ -86,7 +86,7 @@ export function typeNodeFromNvimType(nvimParamType: NVIM_PARAM_TYPES): ts.TypeNo
       typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
       break
     case "Array(Object)":
-      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
       break
     case "Array(Buffer)":
       typeNode = factory.createTypeReferenceNode(identifiers.NVIMBufferExtReturnImportIdentifier)
@@ -113,7 +113,7 @@ export function typeNodeFromNvimType(nvimParamType: NVIM_PARAM_TYPES): ts.TypeNo
       typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
       break
     case "ArrayOf(Object)":
-      typeNode = factory.createKeywordTypeNode(SyntaxKind.ObjectKeyword)
+      typeNode = factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
       break
     case "ArrayOf(Buffer)":
       typeNode = factory.createTypeReferenceNode(identifiers.NVIMBufferExtReturnImportIdentifier)
