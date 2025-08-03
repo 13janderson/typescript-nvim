@@ -7,7 +7,6 @@ const client = new NvimClient(rpcConn)
 const bufnr = (await client.nvim_get_current_buf()).data
 const winnr = (await client.nvim_open_win(bufnr!, true, { relative: 'win', row: 0, col: 0, width: 10, height: 10 })).data
 console.log(`winnr:${winnr}`)
-client.n
 
 if (bufnr) {
   await client.nvim_buf_set_lines(bufnr, 0, -1, false, [
