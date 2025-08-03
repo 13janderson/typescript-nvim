@@ -203,4 +203,4 @@ await Bun.write(
 
 console.log(`Finishing generating client -> ${fileName}`)
 
-  rpcConn.Close()
+rpcConn.Close()
