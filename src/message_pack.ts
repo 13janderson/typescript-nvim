@@ -29,7 +29,6 @@ function tryDecodeMessagePackResponse(res: Buffer | Uint8Array | unknown): unkno
 
 function recursiveDecodeMessagePackResponse(res: object): object {
   Object.entries(res).forEach(([key, value]) => {
-    console.log(`${key}->${value}`)
     const decoded = tryDecodeMessagePackResponse(value);
     if (decoded !== undefined) {
       // If it's a successful decode, replace the original
@@ -60,8 +59,7 @@ export function decodeMessagePackResponse(res: Buffer | unknown): MessagePackRes
       // As per MessagePackRPC spec, result is 'An arbitrary object, which represents the returned result of the function. 
       // So an RPC server could return a result which is also messagepack encoded
       // handle the case where the result needs decoding further... this is handled recursively.
-      if (typeof result == "object") {
-        console.log(`attempting recursive decode`)
+      if (typeof result == "object" && result != null) {
         result = recursiveDecodeMessagePackResponse(result)
       }
 
