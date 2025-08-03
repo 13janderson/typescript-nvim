@@ -9,6 +9,8 @@ Generated client(s) then use the the same RPC mechanism to provide all available
 
 Return and parameter types are derived as per neovim's own documentation, see `help api-metadata` and `help api-types`.
 
+Errors from Neovim are propagated through client calls as RPCErrors, allowing you to handle these within your TypeScript code.
+
 
 # Installation
 
@@ -28,7 +30,12 @@ My main motivation for this was from a previously failed project where I tried t
 - Now, whether I actually go and use this now for a rebuild of that same project is another question but im confident that it would be damn sight easier to do if it were all in TypeScript.
 
 
-# Examples
+# Generating clients
+The TypeScript compiler API to generate TypeScript files of clients, see [nvim_generate_client.ts](./src/nvim_client/nvim_generate_client.ts) for implementation.
+
+Generated clients use special types derived from Neovim's own documentation, see [type defs](./src/nvim_types.ts).
+
+# Client examples
 
 Full code examples are included in [examples](./examples).
 
