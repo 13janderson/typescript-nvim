@@ -1,4 +1,4 @@
-# ts-nvim
+# typescript-nvim
 
 A TypeScript Neovim client which uses RPC to communicate with neovim. This project utilises Neovims built in RPC capability.
 
