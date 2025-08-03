@@ -201,4 +201,6 @@ await Bun.write(
   ]
 );
 
-rpcConn.Close()
+console.log(`Finishing generating client -> ${fileName}`)
+
+  rpcConn.Close()
